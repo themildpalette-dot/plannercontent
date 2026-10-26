@@ -1,0 +1,855 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Before It Happens Planner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  /* Layout: sticky control bar over a single column of idea rows; rows expand into a two-column detail (brief | publish + evaluation). */
+  :root {
+    --bg: #ffd3e6; --surface: #ffffff; --sunk: #ffeaf3; --line: #f6b6d1;
+    --fg: #161a22; --muted: #5d6574; --ink: #1d2740;
+    --signal: #e8891c; --signal-soft: #fdf0de; --signal-fg: #8a4a00;
+    --whatif: #4a5fd1; --whatif-soft: #e7eafb; --psych: #0f8a7a; --psych-soft: #dff3ef;
+    --how: #9b2f86; --how-soft: #f9e1f3; --trend: #b4410f; --trend-soft: #ffe7d6; /* also used for Anatomy Works */
+    --good: #1f8a4c; --good-soft: #e1f4e8; --warn: #b7791f; --warn-soft: #fbf0dc;
+    --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --r: 10px;
+  }
+  /* Single bright-pink look in every theme: dark overrides disabled on purpose. */
+  @media (prefers-color-scheme: dark) { :root.dark-off {
+    --bg: #2b1420; --surface: #22161d; --sunk: #2f1d27; --line: #4a2a3a;
+    --fg: #e8ebf0; --muted: #9aa3b2; --ink: #e8ebf0;
+    --signal: #f0a040; --signal-soft: #3a2a14; --signal-fg: #ffc77a;
+    --whatif: #8c9bff; --whatif-soft: #232a4d; --psych: #4fd1bd; --psych-soft: #14332f;
+    --good: #4cc27f; --good-soft: #163324; --warn: #e0a84a; --warn-soft: #3a2c14; color-scheme: dark } }
+  :root.dark-off-2 {
+    --bg: #2b1420; --surface: #22161d; --sunk: #2f1d27; --line: #4a2a3a;
+    --fg: #e8ebf0; --muted: #9aa3b2; --ink: #e8ebf0;
+    --signal: #f0a040; --signal-soft: #3a2a14; --signal-fg: #ffc77a;
+    --whatif: #8c9bff; --whatif-soft: #232a4d; --psych: #4fd1bd; --psych-soft: #14332f;
+    --good: #4cc27f; --good-soft: #163324; --warn: #e0a84a; --warn-soft: #3a2c14; color-scheme: dark }
+
+  [hidden] { display: none !important; }
+  body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--body); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; display: grid; gap: 20px; }
+  h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+  header.top { display: grid; gap: 6px; }
+  .eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--signal-fg); }
+  header.top h1 { font-size: clamp(28px, 5vw, 40px); font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
+  header.top p { margin: 0; color: var(--muted); max-width: 62ch; }
+
+  .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 2px; }
+  .stat b { font: 800 26px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 13px; }
+  .stat.win b { color: var(--signal-fg); }
+  .bar { height: 6px; background: var(--sunk); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+  .bar i { display: block; height: 100%; background: var(--signal); width: 0; transition: width .3s; }
+
+  .controls { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-bottom: 1px solid var(--line); }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+  .tabs, .seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; background: var(--sunk); border-radius: 8px; padding: 3px; gap: 2px; }
+  .tabs button, .seg button { border: 0; background: transparent; color: var(--muted); font: 600 13px var(--body); padding: 7px 12px; border-radius: 6px; cursor: pointer; }
+  .tabs button[aria-pressed="true"], .seg button[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .controls input[type="search"], .controls select { font: 14px var(--body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; min-width: 0; }
+  .controls input[type="search"] { flex: 1 1 200px; }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+  .sync { font: 500 12px var(--mono); color: var(--muted); margin-left: auto; }
+  .sync.err { color: var(--warn); }
+
+  .list { display: grid; gap: 10px; }
+  .idea { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+  .idea.win { border-color: var(--signal); box-shadow: inset 4px 0 0 var(--signal); }
+  .head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: start; padding: 14px 16px; }
+  .num { font: 500 13px/1 var(--mono); color: var(--muted); padding-top: 5px; font-variant-numeric: tabular-nums; }
+  .ttl { display: grid; gap: 4px; min-width: 0; }
+  .ttl h3 { font-size: 18px; font-weight: 600; line-height: 1.25; }
+  .ttl .hook { color: var(--muted); font-size: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .chip { font: 600 11px/1 var(--body); letter-spacing: .04em; text-transform: uppercase; padding: 5px 8px; border-radius: 99px; }
+  .chip.whatif { background: var(--whatif-soft); color: var(--whatif); }
+  .chip.psych { background: var(--psych-soft); color: var(--psych); }
+  .chip.other { background: var(--signal-soft); color: var(--signal-fg); }
+  .chip.how { background: var(--how-soft); color: var(--how); }
+  .chip.trend, .chip.body { background: var(--trend-soft); color: var(--trend); }
+  .chip.new { background: var(--ink); color: var(--surface); }
+  .inbox { display: grid; gap: 14px; }
+  .iform { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 10px; }
+  .iform h2 { font-size: 20px; font-weight: 800; color: var(--ink); }
+  .iform p { margin: 0; color: var(--muted); font-size: 13px; }
+  .iform .grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 10px; }
+  .iform label { display: grid; gap: 3px; font-size: 12px; color: var(--muted); }
+  .iform input, .iform select, .iform textarea { font: 14px var(--body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 8px 9px; min-width: 0; width: 100%; box-sizing: border-box; }
+  .iform textarea { min-height: 70px; resize: vertical; }
+  .iform .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .iform .err { color: var(--warn); font-size: 13px; }
+  .icard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 6px; }
+  .icard h3 { font-size: 17px; font-weight: 600; }
+  .icard .meta { font: 500 12px var(--mono); color: var(--muted); }
+  .icard .txt { white-space: pre-wrap; font-size: 14px; }
+  .icard .link { font-size: 13px; word-break: break-all; }
+  .icard .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+  .danger { border: 1px solid var(--warn); background: var(--warn-soft); color: var(--warn); border-radius: 8px; padding: 6px 10px; font: 600 13px var(--body); cursor: pointer; }
+  .chip.st-0 { background: var(--sunk); color: var(--muted); }
+  .chip.st-1 { background: var(--warn-soft); color: var(--warn); }
+  .chip.st-2 { background: var(--whatif-soft); color: var(--whatif); }
+  .chip.st-3 { background: var(--good-soft); color: var(--good); }
+  .chip.winb { background: var(--signal); color: #1d1204; }
+  .chip.pot { background: var(--signal-soft); color: var(--signal-fg); }
+  .right { display: grid; gap: 8px; justify-items: end; }
+  .score { font: 800 22px/1 var(--display); font-variant-numeric: tabular-nums; }
+  .score small { font: 500 11px var(--mono); color: var(--muted); display: block; text-align: right; margin-top: 2px; }
+  .toggle { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 8px; padding: 6px 10px; font: 600 13px var(--body); cursor: pointer; }
+
+  .steps { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0 16px 14px 54px; }
+  .steps label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; user-select: none; }
+  .steps input { width: 17px; height: 17px; accent-color: var(--signal); }
+  .steps label.on { color: var(--fg); }
+  .steps .sep { width: 1px; background: var(--line); align-self: stretch; }
+
+  .detail { border-top: 1px solid var(--line); padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+  .detail section { display: grid; gap: 10px; align-content: start; min-width: 0; }
+  .detail h4 { margin: 0; font: 600 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .detail ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+  .q { border-left: 3px solid var(--signal); padding: 4px 0 4px 10px; font-style: italic; }
+  .visual { background: var(--sunk); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+  .note { font-size: 12px; color: var(--warn); }
+  .copybox { background: var(--sunk); border-radius: 8px; padding: 10px 12px; display: grid; gap: 8px; }
+  .copybox pre { margin: 0; white-space: pre-wrap; word-break: break-word; font: 13px/1.5 var(--body); }
+  .copybox .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .copy { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 6px; padding: 4px 9px; font: 600 12px var(--body); cursor: pointer; }
+  .copy.done { color: var(--good); border-color: var(--good); }
+
+  .eval { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .eval label { display: grid; gap: 3px; font-size: 12px; color: var(--muted); }
+  .eval input, .eval select, .detail textarea { font: 14px var(--body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 7px 8px; min-width: 0; width: 100%; box-sizing: border-box; font-variant-numeric: tabular-nums; }
+  .detail textarea { resize: vertical; min-height: 60px; }
+  .evalsec { grid-column: 1 / -1; border-top: 1px dashed var(--line); padding-top: 14px; }
+  .evalsec .eval { max-width: 220px; grid-template-columns: minmax(0, 1fr); }
+  .verdict { font-size: 14px; padding: 10px 12px; border-radius: 8px; background: var(--sunk); }
+  .verdict.win { background: var(--signal); color: #1d1204; font-weight: 600; }
+  .verdict.pot { background: var(--signal-soft); color: var(--signal-fg); }
+  .etable { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+  .etable table { min-width: 560px; width: 100%; font-size: 13px; }
+  .etable th, .etable td { padding: 6px 6px; border-bottom: 1px solid var(--line); }
+  .etable tbody th { text-align: left; font: 600 12px var(--body); color: var(--fg); background: var(--surface); text-transform: none; letter-spacing: 0; white-space: nowrap; }
+  .etable thead th { font-size: 10px; white-space: normal; line-height: 1.2; }
+  .etable input { width: 100%; min-width: 58px; box-sizing: border-box; font: 13px var(--mono); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 5px 6px; }
+  .etable tr:last-child th, .etable tr:last-child td { border-bottom: 0; }
+  .breakdown { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; font-size: 12px; color: var(--muted); }
+  .breakdown div { background: var(--sunk); border-radius: 6px; padding: 6px 8px; }
+  .breakdown b { display: block; color: var(--fg); font: 500 14px var(--mono); }
+  .star { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; cursor: pointer; }
+
+  .board { display: grid; gap: 14px; }
+  .today { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; box-shadow: inset 4px 0 0 var(--signal); }
+  .today .th { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .today h2 { font-size: 22px; font-weight: 800; color: var(--ink); }
+  .today .date { font: 500 13px var(--mono); color: var(--signal-fg); }
+  .titem { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .titem h3 { font-size: 18px; font-weight: 600; }
+  .titem .hook { color: var(--muted); font-size: 14px; }
+  .titem .steps { padding: 0; }
+  .titem .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sched { display: grid; gap: 14px; }
+  .sched-set { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+  .sched-set label { display: grid; gap: 3px; font-size: 12px; color: var(--muted); }
+  .sched-set input, .sched-set select { font: 14px var(--body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 7px 8px; }
+  .sched-set p { margin: 0; flex: 1 1 260px; color: var(--muted); font-size: 13px; }
+  .primary { border: 0; background: var(--signal); color: #1d1204; font: 700 13px var(--body); padding: 9px 14px; border-radius: 8px; cursor: pointer; }
+  .week { display: grid; gap: 6px; }
+  .week h3 { font: 600 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+  .day { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); display: grid; grid-template-columns: 120px minmax(0, 1fr); }
+  .day .d { padding: 12px 14px; border-right: 1px solid var(--line); display: grid; align-content: start; gap: 2px; }
+  .day .d b { font: 800 20px/1 var(--display); font-variant-numeric: tabular-nums; }
+  .day .d span { font-size: 12px; color: var(--muted); }
+  .day.is-today { border-color: var(--signal); box-shadow: inset 4px 0 0 var(--signal); }
+  .day.is-today .d span { color: var(--signal-fg); font-weight: 600; }
+  .day .items { display: grid; }
+  .ditem { padding: 10px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; }
+  .ditem + .ditem { border-top: 1px dashed var(--line); }
+  .ditem .t { display: grid; gap: 4px; min-width: 0; }
+  .ditem .t b { font-weight: 600; }
+  .ditem .steps { padding: 0; gap: 4px 12px; grid-column: 1 / -1; }
+  .chip.late { background: var(--warn-soft); color: var(--warn); }
+  .linkbtn { border: 0; background: none; color: var(--whatif); font: 600 13px var(--body); cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+  .datepick { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+  .datepick input { font: 14px var(--body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; }
+  .recap { display: grid; gap: 14px; }
+  .remind { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 10px; box-shadow: inset 4px 0 0 var(--whatif); }
+  .remind h2 { font-size: 20px; font-weight: 800; color: var(--ink); }
+  .remind .sub { margin: 0; color: var(--muted); font-size: 13px; }
+  .rlist { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+  .rlist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; border-top: 1px solid var(--line); padding-top: 8px; }
+  .rlist .t { display: grid; gap: 4px; min-width: 0; }
+  .rlist .t small { color: var(--muted); font-size: 12px; }
+  .chip.due { background: var(--good-soft); color: var(--good); }
+  .chip.over { background: var(--warn-soft); color: var(--warn); }
+  .chip.soon { background: var(--sunk); color: var(--muted); }
+  .rc { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 10px; align-content: start; }
+  .rc h3 { font-size: 18px; font-weight: 800; color: var(--ink); }
+  .rc .sub { margin: 0; color: var(--muted); font-size: 13px; }
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .kpi { background: var(--sunk); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
+  .kpi b { font: 800 24px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+  .kpi span { font-size: 12px; color: var(--muted); }
+  .insights { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+  .insights b { color: var(--ink); }
+  .bars { display: grid; gap: 8px; }
+  .brow { display: grid; grid-template-columns: 120px minmax(0, 1fr) 36px; gap: 2px 10px; align-items: center; font-size: 14px; }
+  .brow .meta { grid-column: 2 / -1; font-size: 12px; color: var(--muted); }
+  .brow .track { height: 14px; background: var(--sunk); border-radius: 99px; overflow: hidden; }
+  .brow .track i { display: block; height: 100%; border-radius: 99px; background: var(--signal); }
+  .brow .track i.lo { background: #c9a6b6; }
+  .brow .val { font: 500 13px var(--mono); color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .brow .val b { color: var(--fg); }
+  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+  .vlist { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .vlist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: baseline; font-size: 14px; border-bottom: 1px dashed var(--line); padding-bottom: 6px; }
+  .vlist li:last-child { border-bottom: 0; }
+  .vlist small { color: var(--muted); font-size: 12px; display: block; }
+  .vlist .sc { font: 800 18px var(--display); }
+  .legend { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 6px; font-size: 14px; }
+  .legend p { margin: 0; color: var(--muted); }
+  .sumgrid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 14px; }
+  table.mini { min-width: 0; }
+  .tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+  table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  th { font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--sunk); }
+  td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+  tr.win td:first-child { box-shadow: inset 4px 0 0 var(--signal); }
+  .empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+
+  @media (max-width: 760px) {
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stat.win { grid-column: 1 / -1; }
+    .iform .grid { grid-template-columns: minmax(0, 1fr); }
+    .detail { grid-template-columns: minmax(0, 1fr); }
+    .breakdown { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sumgrid { grid-template-columns: minmax(0, 1fr); }
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .two { grid-template-columns: minmax(0, 1fr); }
+    .brow { grid-template-columns: 92px minmax(0, 1fr) 32px; }
+    table.mini { min-width: 480px; }
+    .head { grid-template-columns: minmax(0, 1fr) auto; }
+    .num { grid-column: 1 / -1; padding-top: 0; }
+    .steps { padding-left: 16px; }
+    .sync { margin-left: 0; width: 100%; }
+    .day { grid-template-columns: minmax(0, 1fr); }
+    .day .d { border-right: 0; border-bottom: 1px solid var(--line); grid-auto-flow: column; justify-content: start; gap: 10px; align-items: baseline; }
+    .controls { position: static; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Before It Happens · Content Planner</div>
+    <h1>What If, Psychology &amp; Curiosity</h1>
+    <p>80 ide Shorts: What If, Human Psychology, How It Works sehari-hari, dan Anatomy Works. Centang tiap tahap produksi, salin judul dan deskripsi saat upload, lalu isi evaluasi untuk menemukan winning content.</p>
+  </header>
+
+  <div class="today" id="today"></div>
+  <div class="remind" id="remind" hidden></div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <div class="tabs" role="group" aria-label="Tampilan">
+      <button id="tab-sched" aria-pressed="false">Jadwal Harian</button>
+      <button id="tab-plan" aria-pressed="true">Planner</button>
+      <button id="tab-win" aria-pressed="false">Winning Content</button>
+      <button id="tab-inbox" aria-pressed="false">Ide Baru</button>
+      <button id="tab-recap" aria-pressed="false">Rekap Evaluasi</button>
+    </div>
+    <div class="seg" role="group" aria-label="Kategori" id="cat">
+      <button data-v="all" aria-pressed="true">Semua</button>
+      <button data-v="whatif" aria-pressed="false">What If</button>
+      <button data-v="psych" aria-pressed="false">Psychology</button>
+      <button data-v="how" aria-pressed="false">How It Works</button>
+      <button data-v="body" aria-pressed="false">Anatomy Works</button>
+    </div>
+    <select id="status" aria-label="Status">
+      <option value="all">Semua status</option>
+      <option value="0">Belum mulai</option>
+      <option value="1">Produksi</option>
+      <option value="2">Siap upload</option>
+      <option value="3">Sudah upload</option>
+      <option value="win">Winning</option>
+    </select>
+    <select id="sort" aria-label="Urutkan">
+      <option value="num">Urut nomor</option>
+      <option value="score">Skor tertinggi</option>
+    </select>
+    <input type="search" id="q" placeholder="Cari judul atau hook…" aria-label="Cari">
+    <span class="sync" id="sync">Menghubungkan penyimpanan…</span>
+  </div>
+
+  <div id="view-plan" class="list"></div>
+  <div id="view-recap" class="recap" hidden></div>
+  <div id="view-inbox" class="inbox" hidden>
+    <form class="iform" id="iform" autocomplete="off">
+      <h2 id="iform-title">Catat ide baru</h2>
+      <p>Tulis inspirasi secepatnya, rapikan nanti. Ide yang sudah siap bisa dimasukkan ke jadwal dan langsung punya checklist, judul, deskripsi, dan evaluasi seperti ide lainnya.</p>
+      <div class="grid">
+        <label>Judul atau ide singkat<input id="in-title" maxlength="140" placeholder="Contoh: What If Your Phone Could Feel Your Mood?"></label>
+        <label>Kategori<select id="in-cat"><option value="whatif">What If</option><option value="psych">Psychology</option><option value="how">How It Works</option><option value="body">Anatomy Works</option><option value="other">Lainnya</option></select></label>
+      </div>
+      <label>Hook (kalimat pembuka, opsional)<input id="in-hook" maxlength="240" placeholder="Kalimat pertama yang bikin orang berhenti scroll"></label>
+      <label>Inspirasi, alur kasar, atau catatan<textarea id="in-note" maxlength="3000" placeholder="Dari mana idenya, adegan yang terbayang, ending atau pertanyaan penutup…"></textarea></label>
+      <label>Link sumber inspirasi (opsional)<input id="in-link" maxlength="500" placeholder="https://…"></label>
+      <div class="row"><button class="primary" type="submit" id="in-save">Simpan ide</button><button class="toggle" type="button" id="in-cancel" hidden>Batal ubah</button><span class="err" id="in-err"></span></div>
+    </form>
+    <div id="ilist" class="inbox"></div>
+  </div>
+  <div id="view-sched" class="sched" hidden>
+    <div class="sched-set">
+      <label>Mulai tanggal<input type="date" id="set-start"></label>
+      <label>Video per hari<select id="set-per"><option value="1">1 video</option><option value="2">2 video</option><option value="3">3 video</option></select></label>
+      <button class="primary" id="set-save">Simpan jadwal</button>
+      <p id="set-note">Ide What If dan Psychology diselang-seling otomatis. Ubah tanggal satu ide lewat tombol "Pindah tanggal" atau di Detail ide.</p>
+    </div>
+    <div id="days"></div>
+  </div>
+  <div id="view-win" class="board" hidden>
+    <div class="legend">
+      <h3>Cara skor dihitung (0–100)</h3>
+      <p>Skor dihitung per platform lalu digabung sesuai jumlah views. <b>Engagement 45 poin:</b> (like + komen + share + save) ÷ views, penuh di 10%. <b>Jangkauan 35 poin:</b> views dibanding rata-rata views videomu di platform yang sama, penuh di 2× rata-rata. <b>Follow 20 poin:</b> follower baru per 1.000 views, penuh di 5.</p>
+      <p><b>Winning</b> = skor 70 ke atas, <b>Potensial</b> = skor 50–69, ditentukan otomatis oleh sistem dan berubah sendiri saat angka diperbarui. Isi angka setelah video berumur 48–72 jam supaya perbandingannya adil.</p>
+    </div>
+    <div class="sumgrid">
+      <div class="tablewrap"><table class="mini"><thead><tr><th>Platform</th><th>Video</th><th>Total views</th><th>Engagement rata²</th><th>Skor rata²</th></tr></thead><tbody id="sum-pf"></tbody></table></div>
+      <div class="tablewrap"><table class="mini"><thead><tr><th>Kategori</th><th>Video</th><th>Skor rata²</th><th>Winning</th></tr></thead><tbody id="sum-cat"></tbody></table></div>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>#</th><th>Judul</th><th>Kategori</th><th>Total views</th><th>TikTok</th><th>IG</th><th>FB</th><th>Shorts</th><th>Terbaik</th><th>Skor</th><th>Status</th></tr></thead>
+      <tbody id="rank"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<script>
+const BASE = [{"id": "01", "cat": "whatif", "title": "What If Everyone Could Hear Your Thoughts?", "hook": "Tomorrow morning, every thought you have becomes audible to everyone nearby.", "steps": ["Seseorang bangun dan menyadari orang-orang di sekitarnya bisa mendengar pikirannya.", "Awalnya, hal-hal kecil membuat suasana canggung: pikiran spontan, rasa malu, dan penilaian yang biasanya disimpan sendiri.", "Ia mencoba mengosongkan pikirannya, tetapi justru makin panik dan sulit fokus.", "Ia akhirnya belajar berhenti menghakimi pikiran spontan dan memilih kata-kata serta tindakan yang benar-benar ingin ia sampaikan."], "ending": "Would you want this ability—or would you turn it off forever?", "visual": "Kota pagi, ekspresi orang berubah saat mendengar pikiran, tokoh menenangkan diri di ruang tenang.", "note": "Fiksi spekulatif."}, {"id": "02", "cat": "whatif", "title": "What If You Could Rewind Time by 10 Seconds?", "hook": "He discovered he could rewind time—but only by ten seconds.", "steps": ["Tokoh menemukan bahwa ia bisa mengulang sepuluh detik terakhir.", "Ia memakai kemampuan itu untuk menghindari kesalahan kecil dan memenangkan permainan sederhana.", "Saat terjadi keadaan darurat, ia terus mengulang momen yang sama tetapi sadar kemampuan itu tidak cukup untuk menyelesaikan semuanya.", "Ia berhenti mengandalkan kekuatan itu dan mengambil keputusan nyata dengan informasi yang tersedia."], "ending": "What would you do first if you could rewind only ten seconds?", "visual": "Jam digital mundur, gelas hampir jatuh, tokoh mencoba beberapa pilihan berbeda.", "note": ""}, {"id": "03", "cat": "whatif", "title": "What If Your Dreams Were Broadcast Online?", "hook": "Every dream you had last night appeared on a public screen.", "steps": ["Pagi hari, orang-orang menemukan potongan mimpi mereka ditampilkan di layar kota.", "Tokoh takut mimpi anehnya akan disalahartikan sebagai keinginan atau niat sebenarnya.", "Ia menyadari orang lain juga memiliki mimpi absurd yang tidak mencerminkan siapa mereka.", "Saat layar menampilkan mimpi terakhirnya, ia memilih menjelaskan bahwa mimpi bukanlah pengakuan atau ramalan."], "ending": "Would you be embarrassed—or curious to see everyone else’s dreams?", "visual": "Layar kota menampilkan simbol mimpi surreal, tokoh menatap layar, kerumunan bereaksi.", "note": ""}, {"id": "04", "cat": "whatif", "title": "What If Nobody Needed to Sleep?", "hook": "One day, humans stopped feeling sleepy. What would happen to the extra eight hours?", "steps": ["Orang-orang mendadak tidak lagi merasa mengantuk dan punya banyak waktu tambahan.", "Awalnya semua orang senang: belajar, bekerja, dan hiburan berlangsung sepanjang malam.", "Namun batas kerja dan istirahat menghilang; sebagian orang merasa selalu dituntut produktif.", "Tokoh membuat rutinitas baru untuk menjaga hubungan, waktu tenang, dan kesehatan meskipun tidak mengantuk."], "ending": "Would a world without sleep feel like freedom—or endless work?", "visual": "Kota terang sepanjang malam, jam berputar, tokoh menutup laptop dan menghabiskan waktu bersama keluarga.", "note": ""}, {"id": "05", "cat": "whatif", "title": "What If Every Lie Turned Your Voice Blue?", "hook": "The first lie of the day made his voice glow blue.", "steps": ["Tokoh mengetahui bahwa setiap kebohongan membuat suaranya berubah warna.", "Kebohongan kecil dalam percakapan sehari-hari membuat orang-orang terkejut.", "Ia melihat bahwa kebenaran juga bisa disampaikan dengan kasar, sehingga kejujuran saja tidak otomatis membuat hubungan sehat.", "Ia belajar berkata jujur dengan empati, sekaligus memahami bahwa privasi tidak selalu berarti berbohong."], "ending": "Would a world without lies be a better world?", "visual": "Cahaya biru halus muncul dari mulut tokoh saat bicara; gunakan gaya fiksi, bukan klaim nyata.", "note": ""}, {"id": "06", "cat": "whatif", "title": "What If You Could See Everyone’s Regrets?", "hook": "Every person had a shadow showing the one thing they regretted most.", "steps": ["Tokoh mulai melihat bayangan simbolis di belakang orang-orang.", "Ia mengira bisa memahami semua orang dari penyesalan mereka, tetapi tafsirnya sering keliru.", "Ia bertemu seseorang yang tampak bahagia namun membawa bayangan besar, lalu memilih mendengarkan daripada menebak.", "Tokoh menyadari bahwa orang memiliki cerita yang tidak terlihat dan tidak bisa disimpulkan dari penampilan."], "ending": "Would knowing someone’s biggest regret bring you closer—or push you away?", "visual": "Bayangan simbolis di jalan ramai, dua karakter berbicara di bangku taman.", "note": ""}, {"id": "07", "cat": "whatif", "title": "What If All Money Expired Every Midnight?", "hook": "At midnight, every bank balance reset to zero.", "steps": ["Pengumuman global menyebut uang akan kedaluwarsa setiap tengah malam.", "Orang-orang panik dan membeli barang tanpa rencana, sementara toko dan layanan kewalahan.", "Tokoh membantu keluarganya memprioritaskan kebutuhan, berbagi sumber daya, dan mencari informasi resmi.", "Ternyata itu simulasi sosial yang menguji respons masyarakat—atau akhir cerita dibiarkan terbuka sebagai fiksi."], "ending": "What would matter most if money disappeared every night?", "visual": "ATM, toko ramai, keluarga membuat daftar kebutuhan; tandai jelas sebagai fiksi.", "note": ""}, {"id": "08", "cat": "whatif", "title": "What If You Could Pause Everyone Except Yourself?", "hook": "At 5:17 p.m., the whole world froze—except her.", "steps": ["Tokoh menemukan semua orang berhenti bergerak sementara dirinya tetap bisa bergerak.", "Ia awalnya menggunakan waktu itu untuk menyelesaikan tugas dan melihat kota yang sunyi.", "Ia mulai merasa kesepian dan sadar bahwa momen yang bermakna membutuhkan orang lain yang ikut hadir.", "Saat waktu kembali berjalan, ia memilih menggunakan waktunya untuk menemui seseorang yang selama ini ia abaikan."], "ending": "Would you use the pause to get ahead—or to fix something in your life?", "visual": "Kota membeku, daun melayang, tokoh berjalan sendirian lalu memeluk teman saat waktu kembali.", "note": ""}, {"id": "09", "cat": "whatif", "title": "What If You Received a Message From Yourself 20 Years Later?", "hook": "The message began: ‘I know what you’re about to do. Please don’t.’", "steps": ["Tokoh menerima pesan dari akun yang mengaku dirinya di masa depan.", "Pesan itu memperingatkan tentang keputusan besar yang akan ia ambil.", "Ia tidak langsung percaya; ia memeriksa bukti dan mempertimbangkan risiko serta manfaat keputusan itu.", "Ia membuat keputusan berdasarkan nilai dan fakta saat ini, bukan hanya rasa takut terhadap pesan misterius."], "ending": "Would you trust your future self without proof?", "visual": "Pesan misterius di ponsel, versi tua tokoh dalam pantulan, dokumen keputusan.", "note": ""}, {"id": "10", "cat": "whatif", "title": "What If You Could See One Possible Future?", "hook": "Every time he made a choice, he saw one possible outcome.", "steps": ["Tokoh mendapat kilasan masa depan setiap kali mengambil keputusan.", "Ia mulai menghindari semua pilihan yang tampak berisiko dan kehilangan banyak kesempatan.", "Ia menyadari bahwa satu kemungkinan bukan kepastian dan masa depan dipengaruhi tindakan baru.", "Ia memilih langkah yang sesuai nilai dirinya sambil menerima bahwa tidak semua hal bisa dipastikan."], "ending": "Would seeing one possible future make your life easier—or more frightening?", "visual": "Kilasan visual dari dua kemungkinan, tokoh berdiri di persimpangan jalan.", "note": ""}, {"id": "11", "cat": "whatif", "title": "What If Your Reflection Had a Different Life?", "hook": "Her reflection smiled before she did.", "steps": ["Tokoh melihat pantulan yang melakukan gerakan sedikit berbeda.", "Pantulan itu mulai menunjukkan versi kehidupan yang tidak pernah ia pilih: pekerjaan, kota, dan hubungan berbeda.", "Ia merasa menyesal atas semua jalan yang tidak diambil, lalu menyadari ia hanya melihat sisi ideal dari kehidupan alternatif.", "Ia kembali ke kehidupannya sendiri dan memilih satu perubahan kecil yang masih bisa dilakukan sekarang."], "ending": "Do you ever wonder about the life you didn’t choose?", "visual": "Cermin dengan versi alternatif, transisi ke tokoh membuat perubahan nyata.", "note": ""}, {"id": "12", "cat": "whatif", "title": "What If Every Door Led to a Different Year?", "hook": "She opened her closet and stepped into the year 2045.", "steps": ["Sebuah pintu rumah membawa tokoh ke tahun berbeda setiap kali dibuka.", "Ia mengunjungi masa lalu dan masa depan, berharap menemukan jawaban untuk masalahnya.", "Ia menemukan bahwa mengetahui masa depan tidak selalu membantu karena setiap tindakan dapat mengubah hasil.", "Ia memilih kembali ke masa kini dan menyelesaikan masalah yang selama ini ia tunda."], "ending": "Which year would you visit first—and why?", "visual": "Pintu terbuka ke suasana tahun berbeda; perubahan kostum dan teknologi.", "note": ""}, {"id": "13", "cat": "whatif", "title": "What If Humans Could Live for 200 Years?", "hook": "At 80, she was still considered young.", "steps": ["Tokoh hidup di dunia dengan usia manusia mencapai dua ratus tahun.", "Pendidikan, karier, hubungan, dan pensiun berubah karena orang punya beberapa fase hidup.", "Ia menyadari umur panjang tidak otomatis membuat hidup terasa bermakna; waktu masih bisa terbuang.", "Ia berhenti menunggu ‘nanti’ dan mulai melakukan sesuatu yang penting baginya sekarang."], "ending": "Would a 200-year life make you feel free—or make decisions harder?", "visual": "Kota futuristik, karakter dari berbagai usia, kalender panjang.", "note": ""}, {"id": "14", "cat": "whatif", "title": "What If Everyone Forgot You for One Day?", "hook": "At 7 a.m., even your closest friend looked at you like a stranger.", "steps": ["Tokoh bangun dan mendapati keluarga serta teman tidak mengenalinya.", "Ia mencoba membuktikan identitasnya lewat foto dan pesan, tetapi semua orang menganggapnya orang asing.", "Ia berhenti memaksa orang percaya dan membantu seseorang yang membutuhkan tanpa mengharapkan pengakuan.", "Ingatan semua orang pulih malam itu, tetapi ia membawa pelajaran tentang kebaikan yang tidak selalu membutuhkan pujian."], "ending": "What would you do if nobody remembered you for 24 hours?", "visual": "Foto keluarga yang berubah, tokoh sendirian di keramaian, adegan membantu orang.", "note": ""}, {"id": "15", "cat": "whatif", "title": "What If Every Choice Created a Clone of You?", "hook": "Somewhere in the city, another version of him existed for every choice he didn’t make.", "steps": ["Tokoh melihat versi dirinya dengan kehidupan yang berbeda-beda.", "Ia membandingkan dirinya dengan versi yang lebih kaya, berani, atau populer.", "Perbandingan itu membuatnya merasa gagal meskipun setiap versi menghadapi masalah sendiri.", "Ia berhenti mengejar kehidupan versi lain dan menentukan keberhasilan dengan ukuran yang lebih pribadi."], "ending": "Would you want to meet the versions of yourself you never became?", "visual": "Beberapa versi karakter di lokasi berbeda, montase kehidupan paralel.", "note": ""}, {"id": "16", "cat": "whatif", "title": "What If Gravity Became Half as Strong for One Hour?", "hook": "At noon, people began floating a few inches above the ground.", "steps": ["Gravitasi mendadak melemah dalam skenario fiksi dan benda-benda mulai melayang.", "Orang-orang panik ketika kendaraan, barang, dan aktivitas sehari-hari berubah berbahaya.", "Tokoh mencari tempat yang aman, menjauh dari benda berat, dan mengikuti instruksi petugas.", "Gravitasi kembali normal setelah satu jam, meninggalkan kota yang berantakan dan pertanyaan tentang kesiapsiagaan."], "ending": "What would be the first thing you’d try—or avoid?", "visual": "Benda melayang dan orang berpegangan pada struktur kokoh; efek visual fiksi.", "note": ""}, {"id": "17", "cat": "whatif", "title": "What If the Ocean Rose One Meter Overnight?", "hook": "The coastline looked different at sunrise—and the water was still rising.", "steps": ["Warga pesisir bangun melihat air mencapai area yang biasanya kering.", "Tokoh memeriksa peringatan resmi dan tidak mendekati garis pantai untuk merekam.", "Keluarganya mengikuti jalur evakuasi yang ditentukan dan membawa perlengkapan penting.", "Cerita berakhir dengan pesan bahwa skenario ini fiksi, tetapi peringatan banjir pesisir harus selalu ditanggapi serius."], "ending": "Would you know where to go if your area received an evacuation warning?", "visual": "Pesisir, peringatan di ponsel, keluarga bergerak ke tempat tinggi sesuai arahan petugas.", "note": ""}, {"id": "18", "cat": "whatif", "title": "What If You Could Trade Memories?", "hook": "She traded one painful memory for a happy one—and forgot what it taught her.", "steps": ["Dalam dunia fiksi, orang bisa menukar ingatan dengan orang lain.", "Tokoh ingin menghapus kenangan menyakitkan dan menukarnya dengan kenangan bahagia milik orang lain.", "Ia merasa lebih ringan, tetapi kehilangan pelajaran yang membantu dirinya mengenali batasan dan tumbuh.", "Ia memilih menerima bahwa kenangan tidak selalu nyaman, tetapi pengalaman juga membentuk dirinya."], "ending": "Would you erase one painful memory if you had the chance?", "visual": "Memori divisualisasikan sebagai bola cahaya atau foto yang berpindah tangan.", "note": ""}, {"id": "19", "cat": "whatif", "title": "What If You Could Hear the Last Thought of Everyone You Meet?", "hook": "Every stranger you passed left one sentence in your mind.", "steps": ["Tokoh bisa mendengar satu pikiran terakhir dari setiap orang yang berpapasan.", "Awalnya ia merasa memiliki wawasan istimewa, tetapi terlalu banyak suara membuatnya kewalahan.", "Ia mendengar pikiran orang yang tampak kasar ternyata sedang takut atau sedih, namun ia tidak menganggap satu pikiran mewakili seluruh pribadi.", "Ia belajar bahwa empati berarti bertanya dan mendengarkan, bukan menganggap dirinya tahu isi hati orang."], "ending": "Would you want to hear one thought from every stranger?", "visual": "Stasiun ramai, kalimat-kalimat singkat muncul di layar, tokoh mencari ketenangan.", "note": ""}, {"id": "20", "cat": "whatif", "title": "What If Your Life Had a Public Rating?", "hook": "Every person had a score floating above their head.", "steps": ["Tokoh bangun di dunia tempat nilai popularitas terlihat di atas kepala semua orang.", "Ia mulai mengejar skor dengan menyenangkan orang lain dan mengubah kepribadiannya.", "Ia melihat seseorang dengan skor rendah justru menolong orang saat tidak ada yang melihat.", "Tokoh menyadari angka publik tidak bisa mengukur karakter, lalu berhenti menjadikan validasi sebagai tujuan utama."], "ending": "Would you live differently if everyone could see your rating?", "visual": "Angka holografik di atas karakter, tokoh membantu orang tanpa kamera.", "note": ""}, {"id": "21", "cat": "psych", "title": "Why You Replay Awkward Moments at Night", "hook": "It happened three years ago. So why is your brain replaying it at 2 a.m.?", "steps": ["Tokoh hendak tidur, tetapi teringat komentar canggung yang ia ucapkan bertahun-tahun lalu.", "Ia membayangkan semua orang masih mengingatnya, padahal ia tidak punya bukti bahwa orang lain memikirkannya.", "Ia menuliskan pikiran itu, mempertimbangkan apa yang benar-benar bisa diperbaiki, lalu mengalihkan perhatian ke rutinitas tidur.", "Ia menyadari bahwa rasa malu terasa kuat, tetapi bukan berarti kejadian itu masih penting bagi orang lain."], "ending": "What awkward moment does your brain refuse to delete?", "visual": "Kamar gelap, kilas balik sosial singkat, tokoh menulis di jurnal.", "note": ""}, {"id": "22", "cat": "psych", "title": "Why Silence Feels So Loud Sometimes", "hook": "The room was quiet, but her mind wouldn’t stop talking.", "steps": ["Tokoh duduk dalam ruangan sunyi dan mulai menyadari pikiran-pikiran yang biasanya tertutup oleh kesibukan.", "Ia mengira rasa tidak nyaman itu berarti ada sesuatu yang salah.", "Ia mencoba mengatur napas, mengamati suara sekitar, dan memberi nama pada emosi tanpa harus langsung mengatasinya.", "Ia memahami bahwa diam dapat membuat pikiran lebih terdengar, tetapi ia bisa belajar meresponsnya dengan lembut."], "ending": "Do you find silence peaceful—or does it make your thoughts louder?", "visual": "Ruang sunyi, close-up wajah, detail suara jam, tokoh berjalan santai.", "note": ""}, {"id": "23", "cat": "psych", "title": "Why We Notice Our Name in a Crowd", "hook": "A hundred people were talking, but one word cut through the noise: her name.", "steps": ["Tokoh berada di tempat ramai dan tiba-tiba mendengar namanya.", "Perhatiannya langsung berpindah meski sebelumnya ia fokus pada hal lain.", "Ia menyadari otak memprioritaskan informasi yang dianggap relevan secara pribadi, tetapi suara mirip belum tentu benar-benar menyebut namanya.", "Ia kembali fokus setelah memeriksa situasi tanpa membuat kesimpulan berlebihan."], "ending": "Has your name ever grabbed your attention in a noisy room?", "visual": "Kafe ramai, suara bercampur, tokoh menoleh saat mendengar namanya.", "note": ""}, {"id": "24", "cat": "psych", "title": "Why Waiting for a Reply Feels So Uncomfortable", "hook": "It’s been twenty minutes, and your mind has already written the worst ending.", "steps": ["Tokoh mengirim pesan dan terus memeriksa layar.", "Ia menafsirkan status online dan tanda baca sebagai sinyal penolakan.", "Ia meletakkan ponsel, melakukan kegiatan lain, dan mengingat bahwa ada banyak alasan seseorang belum membalas.", "Balasan akhirnya datang, tetapi pelajaran utamanya adalah tidak membiarkan ketidakpastian menguasai seluruh hari."], "ending": "Do you check your phone more when the message matters most?", "visual": "Chat tanpa balasan, jari refresh layar, tokoh melakukan aktivitas lain.", "note": ""}, {"id": "25", "cat": "psych", "title": "Why Embarrassment Feels Like Everyone Is Watching", "hook": "She stumbled once—and felt like the entire street had seen it.", "steps": ["Tokoh tersandung ringan di tempat umum dan merasa semua orang menatapnya.", "Ia memutar ulang kejadian itu dan ingin segera pergi.", "Ia melihat orang-orang kembali ke aktivitas masing-masing dan menyadari perhatian mereka tidak selama yang ia bayangkan.", "Ia bangkit, menertawakan kejadian itu dengan lembut, dan melanjutkan harinya."], "ending": "Do you remember other people’s small mistakes as much as your own?", "visual": "Trotoar ramai, tokoh tersandung, orang-orang melanjutkan aktivitas.", "note": ""}, {"id": "26", "cat": "psych", "title": "Why Familiar Songs Bring Back Specific Memories", "hook": "One song played—and suddenly she was seventeen again.", "steps": ["Tokoh mendengar lagu lama di toko dan langsung teringat pada masa sekolah.", "Aroma, tempat, atau suasana dari masa lalu terasa muncul kembali.", "Ia menyadari lagu itu menjadi pemicu ingatan emosional, tetapi kenangan tetap bisa tidak lengkap atau berubah.", "Ia menikmati memori itu tanpa menganggapnya gambaran sempurna tentang masa lalu."], "ending": "Which song takes you back to a specific moment?", "visual": "Lagu dari radio, transisi visual ke kenangan hangat, kembali ke masa kini.", "note": ""}, {"id": "27", "cat": "psych", "title": "Why We Compare Our Lives to Strangers Online", "hook": "She was having a good day—until she saw someone else’s perfect life.", "steps": ["Tokoh membuka media sosial dan melihat unggahan seseorang yang tampak selalu sukses.", "Ia mulai membandingkan pencapaian, penampilan, dan kehidupan sehari-harinya dengan potongan terbaik hidup orang lain.", "Ia menyadari unggahan tidak memperlihatkan keseluruhan cerita dan bahwa perbandingan membuatnya mengabaikan kemajuan sendiri.", "Ia menutup aplikasi dan menetapkan target berdasarkan nilai serta kebutuhan dirinya."], "ending": "Have you ever compared your behind-the-scenes to someone else’s highlight reel?", "visual": "Scroll media sosial, ekspresi berubah, tokoh menutup ponsel dan menulis target.", "note": ""}, {"id": "28", "cat": "psych", "title": "Why Your Brain Loves a Pattern", "hook": "Three strange coincidences happened—and he became certain it was a sign.", "steps": ["Tokoh melihat tiga kejadian mirip dalam satu hari dan yakin semuanya saling berkaitan.", "Ia mulai mencari bukti tambahan dan mengabaikan hal-hal yang tidak cocok dengan teorinya.", "Temannya menyarankan mencatat kejadian yang cocok maupun tidak cocok sebelum menyimpulkan.", "Tokoh memahami bahwa manusia mudah menemukan pola, tetapi pola yang terlihat belum tentu berarti ada hubungan sebab-akibat."], "ending": "When does a coincidence start feeling like a pattern to you?", "visual": "Tiga kejadian mirip, catatan di papan, tokoh membandingkan bukti.", "note": ""}, {"id": "29", "cat": "psych", "title": "Why We Procrastinate Even When We Care", "hook": "The deadline mattered. So why was she cleaning her desk instead?", "steps": ["Tokoh harus menyelesaikan tugas penting tetapi justru membersihkan meja dan memeriksa ponsel.", "Ia merasa bersalah, lalu tugas terasa semakin berat untuk dimulai.", "Ia memecah pekerjaan menjadi langkah lima menit dan menghilangkan satu gangguan dari sekitarnya.", "Setelah mulai, tugas terasa lebih bisa dikelola meskipun belum selesai seluruhnya."], "ending": "What tiny task do you do to avoid the important one?", "visual": "Laptop terbuka, tokoh merapikan barang, timer lima menit, mulai mengetik.", "note": ""}, {"id": "30", "cat": "psych", "title": "Why We Trust Confident People Too Quickly", "hook": "He sounded certain, so everyone assumed he was right.", "steps": ["Dalam rapat, seseorang menyampaikan klaim dengan sangat percaya diri.", "Kelompok lain langsung menyetujuinya tanpa memeriksa bukti.", "Seorang peserta bertanya dengan sopan tentang sumber data dan menemukan bahwa jawabannya belum terverifikasi.", "Kelompok sepakat memisahkan cara bicara yang meyakinkan dari bukti yang mendukung klaim."], "ending": "Have you ever mistaken confidence for competence?", "visual": "Rapat, pembicara percaya diri, peserta memeriksa dokumen dan sumber.", "note": ""}, {"id": "31", "cat": "psych", "title": "Why Small Choices Can Feel Impossible", "hook": "She spent forty minutes choosing what to watch—and watched nothing.", "steps": ["Tokoh menghadapi terlalu banyak pilihan film dan terus membandingkan.", "Setiap opsi terasa berisiko membuatnya melewatkan pilihan yang lebih baik.", "Ia membatasi pilihan menjadi tiga dan memberi waktu dua menit untuk memilih.", "Ia menikmati pilihannya tanpa terus memeriksa alternatif yang tidak dipilih."], "ending": "Do more choices make you happier—or more stressed?", "visual": "Layar pilihan panjang, tokoh bingung, daftar dipersempit menjadi tiga.", "note": ""}, {"id": "32", "cat": "psych", "title": "Why We Sometimes Misread Someone’s Face", "hook": "He looked away, and she assumed he was hiding something.", "steps": ["Tokoh melihat lawan bicara menghindari kontak mata dan menganggapnya tidak jujur.", "Ia mengingat kejadian itu dan menafsirkan semua perilaku berikutnya sebagai tanda mencurigakan.", "Kemudian ia mengetahui orang itu sedang lelah dan merasa gugup dalam percakapan.", "Tokoh belajar bahwa satu ekspresi atau gestur tidak cukup untuk membaca niat seseorang."], "ending": "How often do we mistake a guess for a fact?", "visual": "Percakapan dua orang, salah tafsir ekspresi, klarifikasi dengan dialog.", "note": ""}, {"id": "33", "cat": "psych", "title": "Why Bad News Grabs Our Attention", "hook": "Ten good things happened today. One bad comment was all she remembered.", "steps": ["Tokoh menerima banyak respons positif dan satu komentar negatif.", "Sepanjang hari ia hanya memikirkan komentar negatif itu.", "Ia mencoba menuliskan keseluruhan respons dan menilai apakah komentar tersebut berisi masukan berguna atau hanya menyakitkan.", "Ia memilih mengambil pelajaran yang relevan tanpa membiarkan satu komentar mendefinisikan dirinya."], "ending": "Why do you think one negative comment can outweigh many positive ones?", "visual": "Notifikasi komentar, tokoh membaca ulang satu komentar, menulis refleksi.", "note": ""}, {"id": "34", "cat": "psych", "title": "Why We Feel Nostalgic for Times That Weren’t Perfect", "hook": "She missed the old days—even though she remembered how hard they were.", "steps": ["Tokoh melihat foto masa lalu dan merasa hidup dulu lebih sederhana.", "Ia mengingat momen menyenangkan tetapi melupakan beberapa kesulitan yang juga dialami saat itu.", "Ia menghubungi teman lama dan membicarakan kenangan dengan lebih utuh.", "Ia menghargai masa lalu tanpa menganggap masa kini tidak punya hal baik."], "ending": "Do you miss the past—or the way you felt during it?", "visual": "Foto lama, kenangan bersama teman, kembali ke masa kini.", "note": ""}, {"id": "35", "cat": "psych", "title": "Why We Copy the Crowd Without Noticing", "hook": "Nobody knew why the line was forming. Everyone joined it anyway.", "steps": ["Di sebuah tempat umum, sekelompok orang mulai mengantre tanpa tanda yang jelas.", "Orang lain ikut mengantre karena menganggap kerumunan pasti tahu sesuatu.", "Tokoh berhenti dan mencari informasi sebelum ikut, lalu menemukan bahwa antrean itu salah arah.", "Ia menyadari bahwa perilaku orang banyak bisa memberi petunjuk, tetapi tidak selalu benar."], "ending": "Would you follow the crowd—or stop to ask what’s happening?", "visual": "Kerumunan membentuk antrean, tokoh bertanya kepada petugas, arah antrean diperbaiki.", "note": ""}, {"id": "36", "cat": "psych", "title": "Why We Keep Checking Notifications", "hook": "She unlocked her phone without even knowing why.", "steps": ["Tokoh berkali-kali membuka ponsel meskipun tidak ada notifikasi baru.", "Ia menyadari gerakan itu sudah menjadi kebiasaan saat bosan atau cemas.", "Ia mematikan notifikasi yang tidak penting, menjauhkan ponsel saat bekerja, dan menetapkan waktu untuk memeriksa pesan.", "Ia mulai lebih sadar kapan ia benar-benar membutuhkan ponsel dan kapan hanya bergerak otomatis."], "ending": "How often do you pick up your phone without a reason?", "visual": "Tangan mengambil ponsel berulang, pengaturan notifikasi, ponsel diletakkan jauh.", "note": ""}, {"id": "37", "cat": "psych", "title": "Why Compliments Can Feel Hard to Accept", "hook": "She was praised for her work—and immediately listed everything she did wrong.", "steps": ["Tokoh menerima pujian dari rekan kerja tetapi langsung menyangkalnya.", "Ia takut dianggap sombong jika menerima pujian begitu saja.", "Temannya menyarankan jawaban sederhana: terima kasih, sambil tetap terbuka pada masukan.", "Tokoh belajar bahwa menerima apresiasi tidak berarti menganggap diri sempurna."], "ending": "Do you say thank you—or explain why the compliment isn’t true?", "visual": "Rekan memberi pujian, tokoh menolak, lalu mencoba merespons dengan lebih tenang.", "note": ""}, {"id": "38", "cat": "psych", "title": "Why Uncertainty Can Feel Worse Than Bad News", "hook": "She would rather hear the answer than wait another day.", "steps": ["Tokoh menunggu hasil penting tanpa kepastian.", "Pikirannya berganti-ganti antara hasil terbaik dan terburuk, sehingga sulit berkonsentrasi.", "Ia membagi hal yang bisa dikendalikan dan tidak bisa dikendalikan, lalu menentukan kapan akan memeriksa kabar lagi.", "Saat jawaban tiba, ia menyadari masa menunggu sering kali lebih menguras energi daripada informasi akhirnya."], "ending": "Do you prefer a difficult answer—or not knowing at all?", "visual": "Tokoh menatap ponsel, membuat daftar kontrol, menerima pemberitahuan.", "note": ""}, {"id": "39", "cat": "psych", "title": "Why We Remember Criticism More Than Praise", "hook": "Five people praised him. One person criticized him—and that was the voice he heard all night.", "steps": ["Tokoh mendapat pujian dari beberapa orang dan satu kritik tajam.", "Ia terus mengingat kritik itu seolah-olah mewakili pendapat semua orang.", "Ia memeriksa apakah kritik tersebut spesifik dan bisa ditindaklanjuti, serta mengingat umpan balik positif yang juga relevan.", "Ia mengambil bagian yang berguna tanpa menyamakan kritik tunggal dengan nilai dirinya."], "ending": "Which stays with you longer: praise or criticism?", "visual": "Tokoh membaca catatan pujian dan kritik, lalu merangkum masukan secara objektif.", "note": ""}, {"id": "40", "cat": "psych", "title": "Why We Sometimes Feel Like an Outsider", "hook": "Everyone seemed to know what to do. She was the only one who felt lost.", "steps": ["Tokoh datang ke acara baru dan menganggap semua orang sudah saling mengenal.", "Ia diam karena takut bertanya dan semakin merasa terasing.", "Ia menyapa satu orang dan mengajukan pertanyaan sederhana, lalu menemukan bahwa beberapa orang lain juga baru datang.", "Ia menyadari bahwa rasa canggung sering tidak terlihat dari luar dan koneksi bisa dimulai dari langkah kecil."], "ending": "Have you ever felt like everyone belonged except you?", "visual": "Tokoh berdiri di tepi acara, memulai percakapan, kelompok kecil tertawa bersama.", "note": ""}, {"id": "41", "cat": "psych", "title": "Why We Make Decisions Differently Under Pressure", "hook": "With ten seconds left, he chose the option he had rejected all morning.", "steps": ["Tokoh harus membuat keputusan penting dengan waktu sangat terbatas.", "Tekanan membuatnya mengabaikan informasi yang sebelumnya dianggap penting.", "Ia berhenti sejenak, mengidentifikasi satu atau dua kriteria utama, lalu memilih berdasarkan prioritas.", "Ia belajar bahwa keputusan cepat kadang perlu, tetapi persiapan sebelumnya membantu mengurangi kepanikan."], "ending": "Do you trust your instincts under pressure—or wish for more time?", "visual": "Jam hitung mundur, dua pilihan di meja, tokoh berhenti sejenak lalu memutuskan.", "note": ""}, {"id": "42", "cat": "psych", "title": "Why We Sometimes Defend a Bad Decision", "hook": "He knew the purchase was a mistake—but kept explaining why it was worth it.", "steps": ["Tokoh membeli barang mahal dan kemudian menemukan banyak kekurangannya.", "Alih-alih mengakui keraguan, ia terus mencari alasan untuk membenarkan pembelian.", "Ia menyadari bahwa mengakui keputusan yang kurang tepat tidak menghapus nilai dirinya.", "Ia mengevaluasi apakah barang itu bisa dikembalikan, dijual, atau digunakan, lalu membuat aturan untuk pembelian berikutnya."], "ending": "Have you ever defended a choice just because you already made it?", "visual": "Kotak belanja, tokoh membaca ulasan, mempertimbangkan pengembalian.", "note": ""}, {"id": "43", "cat": "psych", "title": "Why We Feel Safer With Familiar Routines", "hook": "She took the same route every day—even when another route was faster.", "steps": ["Tokoh selalu memilih rute dan rutinitas yang sama.", "Saat rutinitas berubah, ia merasa tidak nyaman meskipun perubahan itu tidak berbahaya.", "Ia mencoba satu perubahan kecil dengan persiapan dan melihat bahwa ia mampu beradaptasi.", "Ia memahami bahwa kebiasaan memberi rasa akrab, tetapi fleksibilitas juga bisa dipelajari."], "ending": "Do routines make you feel grounded—or trapped?", "visual": "Rute harian berulang, peta dengan jalur alternatif, tokoh mencoba jalan baru.", "note": ""}, {"id": "44", "cat": "psych", "title": "Why We Assume Everyone Notices Our Mistakes", "hook": "She mispronounced one word and thought the whole meeting would remember it.", "steps": ["Tokoh salah mengucapkan satu kata saat presentasi.", "Ia menganggap semua orang memperhatikan dan menilai kesalahan itu.", "Setelah rapat, ia menyadari rekan-rekannya lebih fokus pada isi pembahasan daripada kesalahan kecil tersebut.", "Ia memperbaiki pengucapan untuk lain kali tanpa menghukum dirinya sepanjang hari."], "ending": "What if other people notice far less than you think?", "visual": "Presentasi, tokoh salah ucap, peserta tetap mencatat materi.", "note": ""}, {"id": "45", "cat": "psych", "title": "Why We Feel More Confident After Preparing", "hook": "The room hadn’t changed. The difference was that she had practiced.", "steps": ["Tokoh gugup menghadapi presentasi.", "Ia berlatih dengan catatan, menguji peralatan, dan mempersiapkan jawaban untuk pertanyaan umum.", "Rasa gugup belum hilang sepenuhnya, tetapi ia tahu apa yang harus dilakukan jika kehilangan kata-kata.", "Presentasi berjalan cukup baik karena ia fokus pada persiapan, bukan menunggu rasa takut menghilang."], "ending": "What helps you feel prepared before a difficult moment?", "visual": "Latihan di depan cermin, catatan poin, presentasi sebenarnya.", "note": ""}, {"id": "46", "cat": "psych", "title": "Why We Assume the Worst When Someone Says “We Need to Talk”", "hook": "Four words appeared on her screen: ‘We need to talk.’ Her mind jumped to the worst.", "steps": ["Tokoh menerima pesan singkat tanpa konteks dan langsung membayangkan kemungkinan buruk.", "Ia membaca ulang pesan itu berkali-kali dan mulai menyiapkan jawaban untuk konflik yang belum tentu ada.", "Ia menarik napas dan bertanya dengan tenang kapan mereka bisa bicara, tanpa langsung menyimpulkan maksudnya.", "Percakapan ternyata tentang rencana sederhana. Tokoh menyadari bahwa informasi yang belum lengkap mudah diisi oleh kekhawatiran."], "ending": "What message instantly makes your mind imagine the worst?", "visual": "Close-up pesan singkat, tokoh membayangkan beberapa skenario, lalu mendapat klarifikasi.", "note": ""}, {"id": "47", "cat": "psych", "title": "Why We Feel Productive After Making a Plan", "hook": "Her notebook was perfect. Her project still hadn’t started.", "steps": ["Tokoh menghabiskan waktu menyusun jadwal, daftar tugas, dan warna penanda untuk proyeknya.", "Membuat rencana terasa memuaskan, sehingga ia terus menyempurnakannya tanpa mulai bekerja.", "Ia memilih satu langkah kecil yang bisa diselesaikan dalam sepuluh menit dan langsung mengerjakannya.", "Ia belajar bahwa perencanaan berguna jika diikuti tindakan, bukan dijadikan pengganti tindakan."], "ending": "Do you ever plan so much that you forget to begin?", "visual": "Notebook rapi, banyak sticky notes, timer dimulai, tokoh melakukan langkah pertama.", "note": ""}, {"id": "48", "cat": "psych", "title": "Why Apologies Can Be Hard to Say", "hook": "He knew he had hurt his friend. The words ‘I’m sorry’ still wouldn’t come out.", "steps": ["Tokoh sadar ucapannya menyakiti teman, tetapi takut meminta maaf akan membuatnya terlihat salah.", "Ia mencoba menjelaskan niatnya sendiri dan hampir mengabaikan dampak ucapannya.", "Ia berhenti membela diri, mengakui dampak tindakannya, meminta maaf dengan jelas, dan memberi ruang bagi temannya.", "Temannya belum langsung memaafkan, tetapi percakapan menjadi awal untuk memperbaiki hubungan."], "ending": "What makes a sincere apology feel different from an excuse?", "visual": "Dua teman duduk berjauhan, tokoh menarik napas, percakapan jujur tanpa gestur berlebihan.", "note": ""}, {"id": "49", "cat": "psych", "title": "Why We Sometimes Avoid Good Opportunities", "hook": "She wanted the opportunity—until it became real.", "steps": ["Tokoh mendapat kesempatan yang sudah lama diinginkan, tetapi tiba-tiba mulai mencari alasan untuk menolaknya.", "Ia takut gagal, berubah, atau dinilai orang lain jika mencoba.", "Ia membedakan risiko nyata dari rasa takut terhadap hal yang belum dikenal, lalu meminta informasi tambahan.", "Ia mengambil keputusan dengan sadar, bukan sekadar menghindari ketidaknyamanan."], "ending": "Have you ever stepped back from something you actually wanted?", "visual": "Email tawaran, tokoh ragu di depan laptop, membuat daftar risiko dan manfaat.", "note": ""}, {"id": "50", "cat": "psych", "title": "Why We Feel Better After Naming an Emotion", "hook": "She couldn’t explain what was wrong—until she found the right word.", "steps": ["Tokoh merasa gelisah sepanjang hari tetapi hanya menyebut dirinya ‘sedang tidak baik’.", "Ia berhenti sejenak dan mencoba membedakan apakah ia lelah, kecewa, cemas, atau kewalahan.", "Setelah menemukan kata yang lebih tepat, ia bisa menentukan kebutuhan kecil yang mungkin membantu, seperti istirahat atau berbicara dengan seseorang.", "Perasaan itu tidak langsung hilang, tetapi menjadi lebih mudah dipahami dan ditangani."], "ending": "Can you name what you’re feeling right now—in one word?", "visual": "Tokoh menulis beberapa kata emosi di jurnal, memilih satu, lalu melakukan aktivitas menenangkan.", "note": ""}, {"id": "51", "cat": "how", "title": "Why Your Phone Battery Drops Fast in the Cold", "hook": "It said 40%. Five minutes outside, it died.", "steps": ["Tokoh menunggu bus di udara dingin, baterai ponselnya turun drastis lalu mati.", "Baterai ponsel bekerja lewat reaksi kimia, dan reaksi itu melambat saat suhu dingin.", "Ponsel jadi sulit menarik daya, sehingga persentase anjlok atau ponsel mati mendadak walau isinya masih ada.", "Simpan ponsel di saku dalam dekat badan; setelah hangat kembali, persentasenya biasanya naik lagi."], "ending": "Has your phone ever died in the cold with battery left?", "visual": "Halte bus bersalju, angka baterai turun cepat, ponsel dimasukkan ke saku jaket lalu angkanya naik.", "note": ""}, {"id": "52", "cat": "how", "title": "Why Bread Goes Stale Faster in the Fridge", "hook": "You put bread in the fridge to keep it fresh. That made it worse.", "steps": ["Tokoh menyimpan roti di kulkas, besoknya roti keras dan kering.", "Roti menjadi keras karena pati di dalamnya mengkristal kembali dan melepas air.", "Proses itu justru berlangsung paling cepat di suhu kulkas.", "Simpan roti di suhu ruang untuk 1–2 hari, atau iris dan bekukan untuk simpan lebih lama."], "ending": "Fridge, counter, or freezer—where do you keep your bread?", "visual": "Roti lembut di meja vs roti keras dari kulkas, animasi butiran pati mengkristal, roti beku dipanggang.", "note": ""}, {"id": "53", "cat": "how", "title": "What Your Circuit Breaker Is Trying to Tell You", "hook": "The power cut out again. Your house is trying to warn you.", "steps": ["Tokoh menyalakan pemanas air, microwave, dan pengering rambut bersamaan, lalu listrik padam.", "Pemutus arus (MCB) mendeteksi arus yang terlalu besar di satu jalur kabel.", "Ia memutus listrik supaya kabel tidak terlalu panas dan memicu kebakaran.", "Jika terus turun, bagi beban ke stopkontak lain; jika tetap sering turun, panggil teknisi listrik."], "ending": "Which appliance always trips your power?", "visual": "Dapur dengan beberapa alat menyala, kabel di dinding memerah, saklar MCB turun, rumah gelap.", "note": ""}, {"id": "54", "cat": "how", "title": "Why Your Car Windows Fog Up (and the Fastest Fix)", "hook": "You got in the car, and in ten seconds you couldn't see a thing.", "steps": ["Tokoh masuk mobil saat hujan dan kaca langsung berembun.", "Udara hangat dan lembap dari napas bertemu kaca yang dingin, lalu uap airnya mengembun.", "AC mobil mengeringkan udara, bahkan saat diatur ke suhu hangat.", "Nyalakan AC dengan udara dari luar dan arahkan ke kaca; buka sedikit jendela bila perlu."], "ending": "Do you wipe it with your hand—be honest?", "visual": "Kaca mobil memutih karena embun, tetesan uap air, embun menghilang setelah AC dinyalakan.", "note": ""}, {"id": "55", "cat": "how", "title": "How Your Toilet Knows When to Stop Filling", "hook": "That constant hissing sound could be costing you gallons a day.", "steps": ["Tokoh mendengar suara air mengalir terus dari tangki toilet.", "Di dalam tangki ada pelampung yang naik bersama air dan menutup katup saat tangki penuh.", "Jika pelampung tersangkut atau karet penutup di dasar tangki aus, air terus mengalir ke kloset.", "Buka tutup tangki, cek pelampung dan karet penutupnya; komponen ini murah dan mudah diganti."], "ending": "Have you ever opened your toilet tank?", "visual": "Penampang tangki toilet, pelampung naik turun, air bocor dari karet penutup, angka meteran air berputar.", "note": ""}, {"id": "56", "cat": "how", "title": "Why Bananas Turn Brown So Fast", "hook": "Yellow on Monday. Brown by Wednesday. What happened?", "steps": ["Tokoh membeli pisang kuning, dua hari kemudian penuh bercak cokelat.", "Pisang mengeluarkan gas etilen yang mempercepat pematangan, termasuk pada buah di sekitarnya.", "Menaruh pisang bersama buah lain di satu mangkuk membuat semuanya matang lebih cepat.", "Pisahkan pisang dari buah lain; kulitnya menghitam di kulkas, tetapi isinya matang lebih lambat."], "ending": "Do you like your bananas green, yellow, or spotty?", "visual": "Timelapse pisang menguning lalu berbintik, gas tipis menyebar ke apel, mangkuk buah dipisah.", "note": ""}, {"id": "57", "cat": "how", "title": "Why Your Laptop Gets So Hot (and When It's a Warning)", "hook": "Your laptop on the bed is quietly cooking itself.", "steps": ["Tokoh bekerja dengan laptop di atas selimut dan kipasnya berbunyi keras.", "Prosesor menghasilkan panas, dan kipas membuangnya lewat lubang ventilasi.", "Selimut, bantal, dan debu menutup ventilasi sehingga panas terjebak dan laptop melambat.", "Pakai di permukaan keras, bersihkan ventilasi, dan perhatikan jika laptop mati sendiri karena panas."], "ending": "Where do you usually use your laptop?", "visual": "Laptop di atas selimut, aliran panas merah tertahan, lalu laptop di meja dengan aliran udara lancar.", "note": ""}, {"id": "58", "cat": "how", "title": "Why Your Ears Pop on a Plane", "hook": "The plane started descending—and your ears felt like they'd explode.", "steps": ["Tokoh merasa telinganya penuh dan sakit saat pesawat turun.", "Tekanan udara di kabin berubah lebih cepat daripada tekanan di dalam telinga tengah.", "Saluran kecil yang menghubungkan telinga dan tenggorokan perlu terbuka untuk menyamakan tekanan.", "Menelan, menguap, atau mengunyah permen membantu saluran itu terbuka."], "ending": "What's your trick for plane ears?", "visual": "Kabin pesawat turun, ilustrasi telinga dengan panah tekanan, tokoh mengunyah permen dan lega.", "note": "Penjelasan umum, bukan saran medis."}, {"id": "59", "cat": "how", "title": "Why Leftover Rice Shouldn't Sit Out All Night", "hook": "You left the rice on the stove overnight. Here's why that's risky.", "steps": ["Tokoh menemukan nasi sisa semalam di atas kompor dan berniat memanaskannya.", "Beberapa bakteri di beras membentuk spora yang bisa bertahan saat dimasak.", "Jika nasi dibiarkan lama di suhu ruang, spora itu bisa tumbuh dan menghasilkan racun yang tidak hilang saat dipanaskan ulang.", "Dinginkan nasi sisa secepatnya, simpan di kulkas, dan habiskan dalam sehari."], "ending": "Did you grow up leaving rice out overnight?", "visual": "Panci nasi di kompor malam hari, ilustrasi spora membesar, wadah nasi masuk kulkas.", "note": "Penjelasan umum keamanan pangan."}, {"id": "60", "cat": "how", "title": "Why Your Phone Charges Slower After 80%", "hook": "0 to 80% in 30 minutes. The last 20%? Forever.", "steps": ["Tokoh mengisi daya ponsel; cepat sampai 80%, lalu terasa sangat lambat.", "Pengisian cepat aman saat baterai masih kosong, tetapi berbahaya bagi baterai saat hampir penuh.", "Ponsel sengaja memperlambat arus di akhir supaya baterai tidak cepat aus atau terlalu panas.", "Banyak ponsel punya fitur pengisian pintar yang menahan di 80% untuk menjaga umur baterai."], "ending": "Do you charge to 100% every time?", "visual": "Indikator baterai naik cepat lalu melambat, grafik arus menurun, ikon baterai sehat.", "note": ""}, {"id": "61", "cat": "how", "title": "Why Your Windshield Has Frost Even When It Isn't Freezing", "hook": "The weather said 3°C. So why was his windshield covered in ice?", "steps": ["Tokoh heran kaca mobilnya membeku padahal suhu udara di atas nol.", "Di malam cerah, kaca melepas panas ke langit sehingga suhunya bisa lebih dingin daripada udara sekitar.", "Uap air di udara membeku langsung di kaca yang lebih dingin itu.", "Parkir di bawah atap atau tutup kaca dengan penutup di malam cerah dan dingin."], "ending": "Do you scrape, or wait for the defroster?", "visual": "Langit malam berbintang, termometer menunjukkan 3°C, kristal es tumbuh di kaca, penutup kaca mobil.", "note": ""}, {"id": "62", "cat": "how", "title": "Why Your Sunglasses Turn Your Screen Black", "hook": "He tilted his phone—and the screen disappeared.", "steps": ["Tokoh memakai kacamata hitam dan layar ponselnya tiba-tiba gelap saat dimiringkan.", "Banyak layar memancarkan cahaya yang searah getarannya (terpolarisasi).", "Lensa polarisasi hanya meloloskan cahaya dengan arah getaran tertentu, jadi di sudut tertentu cahaya layar terblokir.", "Putar ponsel sedikit atau lepas kacamata saat membaca layar; lensa polarisasi tetap bagus untuk mengurangi silau."], "ending": "Did you think your phone was broken?", "visual": "Layar ponsel menggelap saat diputar, ilustrasi gelombang cahaya melewati kisi, tokoh tertawa.", "note": ""}, {"id": "63", "cat": "how", "title": "Why Your Coffee Goes Cold So Fast", "hook": "You poured it hot. You looked away for ten minutes.", "steps": ["Tokoh menuang kopi panas di mug lebar, lalu lupa meminumnya.", "Panas hilang terutama dari permukaan, lewat penguapan dan udara di atasnya.", "Mug yang lebar dan tanpa tutup punya permukaan besar, jadi kopi dingin lebih cepat.", "Pakai mug lebih tinggi, panaskan mug dulu dengan air panas, atau gunakan tutup."], "ending": "Hot coffee or iced—which side are you on?", "visual": "Uap kopi tebal lalu menipis, termometer turun, perbandingan mug lebar dan tumbler bertutup.", "note": ""}, {"id": "64", "cat": "how", "title": "How a Zipper Works (and How to Fix One)", "hook": "The zipper opened behind the slider. Don't throw the jacket away yet.", "steps": ["Tokoh menarik ritsleting jaket, tetapi giginya terbuka lagi di belakang kepala ritsleting.", "Kepala ritsleting berbentuk baji yang menekan dua baris gigi sampai saling mengunci.", "Lama-kelamaan kepala ritsleting melebar sehingga tidak bisa menjepit gigi dengan rapat.", "Jepit pelan kedua sisi kepala ritsleting dengan tang; sering kali ritsleting kembali normal."], "ending": "What's the most annoying thing that broke right before you needed it?", "visual": "Close-up gigi ritsleting mengunci, kepala ritsleting melebar, tang menekan pelan.", "note": ""}, {"id": "65", "cat": "how", "title": "Why Clothes Shrink in the Dryer", "hook": "It fit on Sunday. After one wash, it fit his little brother.", "steps": ["Tokoh mengeluarkan sweter dari pengering dan ukurannya mengecil.", "Serat kain diregangkan saat diproduksi; panas dan putaran membuatnya kembali mengerut.", "Wol bisa menggumpal dan mengecil permanen karena seratnya saling mengait saat panas dan basah.", "Baca label perawatan, cuci dengan air dingin, dan keringkan dengan cara dijemur untuk pakaian favorit."], "ending": "What piece of clothing did the dryer steal from you?", "visual": "Sweter besar menyusut di dalam pengering, serat kain mengerut, label perawatan dan jemuran.", "note": ""}, {"id": "66", "cat": "body", "title": "Why Do We Get Hiccups?", "hook": "One sip too fast—and your body won't stop going 'hic'.", "steps": ["Pemicu: makan atau minum terlalu cepat, soda, atau perut terlalu penuh mengiritasi saraf yang mengendalikan diafragma (saraf frenikus dan vagus).", "Diafragma, otot berbentuk kubah di bawah paru-paru, tiba-tiba berkontraksi sendiri sehingga udara tersedot cepat ke paru-paru.", "Sepersekian detik kemudian glotis (celah di antara pita suara) menutup rapat dan menghentikan aliran udara itu.", "Udara yang terhenti mendadak di pita suara itulah yang menghasilkan bunyi 'hic'; siklus ini berulang sampai sinyal sarafnya kembali normal."], "ending": "What's your go-to hiccup cure?", "visual": "Animasi 3D anatomi dada: diafragma tersentak turun, udara mengalir ke paru-paru, glotis menutup, gelombang suara 'hic'.", "note": "Penjelasan umum, bukan saran medis."}, {"id": "67", "cat": "body", "title": "Why Your Foot 'Falls Asleep'", "hook": "You stood up after an hour on the floor—and your foot wasn't there.", "steps": ["Posisi duduk bersila menekan saraf di kaki dan pembuluh darah kecil yang memberinya oksigen.", "Saraf yang tertekan tidak bisa mengirim sinyal dengan normal ke otak, sehingga kaki terasa mati rasa.", "Saat tekanan dilepas, aliran darah dan sinyal saraf kembali, tetapi saraf 'menyala' tidak teratur.", "Sinyal acak itulah yang dibaca otak sebagai rasa kesemutan seperti ditusuk jarum, sampai saraf kembali normal."], "ending": "How long can you sit cross-legged before it happens?", "visual": "Animasi 3D kaki: saraf tertekan berwarna redup, lalu kembali menyala dengan percikan listrik kecil di sepanjang saraf.", "note": "Penjelasan umum, bukan saran medis."}, {"id": "68", "cat": "body", "title": "What Happens in Your Body When You Yawn", "hook": "Your jaw opens wide, your eyes water—what is your body doing?", "steps": ["Otak memicu menguap terutama saat kita mengantuk, bosan, atau saat tingkat kewaspadaan berubah.", "Rahang terbuka lebar, otot wajah dan leher meregang, dan paru-paru menarik napas dalam.", "Gerakan ini meningkatkan aliran darah di kepala; salah satu teori menyebut menguap membantu mendinginkan otak.", "Kelenjar air mata ikut tertekan oleh otot wajah, makanya mata sering berair saat menguap."], "ending": "Did you yawn while watching this?", "visual": "Animasi 3D kepala: rahang terbuka, otot wajah meregang, aliran udara masuk ke paru-paru, setetes air mata.", "note": "Penjelasan umum. Fungsi pasti menguap masih diteliti."}, {"id": "69", "cat": "body", "title": "What Happens Inside You When You Don't Drink Enough Water", "hook": "No water since breakfast. Your body has already started adjusting.", "steps": ["Saat cairan tubuh berkurang, darah menjadi sedikit lebih pekat dan sensor di otak (hipotalamus) mendeteksinya.", "Otak memicu rasa haus dan melepas hormon antidiuretik yang meminta ginjal menahan air.", "Ginjal mengembalikan lebih banyak air ke darah, sehingga urin menjadi lebih sedikit dan berwarna lebih gelap.", "Jika berlanjut, volume darah berkurang dan sebagian orang merasakan lelah, sulit fokus, atau sakit kepala."], "ending": "How many glasses of water have you had today?", "visual": "Animasi 3D: otak mengirim sinyal ke ginjal, ginjal menyaring dan menahan air, perbandingan warna urin.", "note": "Penjelasan umum, bukan saran medis."}, {"id": "70", "cat": "body", "title": "Why Your Stomach Growls", "hook": "The room went quiet. Then his stomach spoke.", "steps": ["Dinding lambung dan usus punya otot yang terus berkontraksi untuk mendorong isi pencernaan.", "Beberapa jam setelah makan, muncul gelombang kontraksi kuat yang 'menyapu' sisa makanan dari lambung ke usus.", "Saat perut kosong, gelombang itu mendorong campuran udara dan cairan, dan tidak ada makanan yang meredam suaranya.", "Hormon lapar dari lambung (ghrelin) juga meningkat dan memberi tahu otak bahwa sudah waktunya makan."], "ending": "What's the most embarrassing place your stomach growled?", "visual": "Animasi 3D lambung dan usus berkontraksi bergelombang, gelembung udara bergerak, gelombang suara keluar.", "note": "Penjelasan umum, bukan saran medis."}, {"id": "71", "cat": "body", "title": "How Goosebumps Happen", "hook": "A cold breeze, a great song—and your skin reacts.", "steps": ["Rasa dingin atau emosi kuat seperti takut dan terharu mengaktifkan sistem saraf simpatik.", "Saraf itu mengirim sinyal ke otot sangat kecil di setiap akar rambut, yang disebut arrector pili.", "Otot itu berkontraksi, menarik rambut menjadi tegak dan membuat kulit di sekitarnya terangkat menjadi benjolan kecil.", "Pada hewan berbulu, rambut tegak menahan udara hangat; pada manusia, refleks ini tetap ada sebagai sisa evolusi."], "ending": "Which song gives you goosebumps every time?", "visual": "Animasi 3D penampang kulit: sinyal saraf menyala, otot arrector pili berkontraksi, rambut berdiri.", "note": "Penjelasan umum."}, {"id": "72", "cat": "body", "title": "Why Your Eyelid Twitches", "hook": "Your eyelid has been twitching for three days. Here's what's going on.", "steps": ["Kelopak mata digerakkan oleh otot melingkar di sekitar mata yang dikendalikan saraf wajah.", "Saat kurang tidur, stres, terlalu banyak kafein, atau mata lelah, saraf ini bisa menjadi lebih mudah terpicu.", "Saraf mengirim sinyal kecil berulang tanpa kita sadari, sehingga sebagian serat otot kelopak berkontraksi sendiri.", "Kedutan ini umumnya hilang dengan istirahat; jika berlangsung berminggu-minggu atau menyebar ke wajah, periksakan ke dokter."], "ending": "When does your eye twitch the most?", "visual": "Animasi 3D otot melingkar di sekitar mata, sinyal saraf berkedip, serat otot berkedut kecil.", "note": "Penjelasan umum, bukan saran medis."}, {"id": "73", "cat": "body", "title": "What Happens Inside Your Joint When You Crack Your Knuckles", "hook": "Pop. Is that sound your bones?", "steps": ["Setiap sendi jari dibungkus kapsul yang berisi cairan sinovial, pelumas yang mengandung gas terlarut.", "Saat jari ditarik atau ditekuk, ruang di dalam sendi melebar dan tekanan cairan turun tiba-tiba.", "Penurunan tekanan membentuk rongga gas di dalam cairan, dan proses itu menghasilkan bunyi 'pop'.", "Gas butuh waktu untuk larut kembali, makanya sendi yang sama tidak bisa langsung diretakkan lagi."], "ending": "Do you crack your knuckles—or does the sound make you cringe?", "visual": "Animasi 3D sendi jari: kapsul sendi, cairan sinovial, rongga gas terbentuk saat sendi meregang.", "note": "Penjelasan umum. Hentikan jika terasa sakit."}, {"id": "74", "cat": "body", "title": "What Sitting All Day Does to Your Spine", "hook": "Eight hours in a chair. Your spine noticed before you did.", "steps": ["Tulang belakang punya lengkung alami dan bantalan di antara ruas-ruasnya (diskus) yang menyerap beban.", "Saat duduk membungkuk lama, tekanan pada diskus dan otot punggung bawah meningkat.", "Otot pinggul bagian depan memendek dan otot punggung bekerja terus untuk menahan postur, sehingga terasa kaku.", "Bergerak dan berdiri sebentar mengubah beban dan membantu diskus serta otot pulih."], "ending": "How long have you been sitting right now?", "visual": "Animasi 3D tulang belakang: diskus tertekan saat membungkuk, otot menegang merah, lalu rileks saat berdiri.", "note": "Penjelasan umum, bukan saran medis."}, {"id": "75", "cat": "body", "title": "Why Your Body Gets Sleepy After Lunch", "hook": "2 p.m. Your eyes are closing. Here's what's happening inside.", "steps": ["Jam biologis di otak (nukleus suprakiasmatik) punya penurunan kewaspadaan alami di awal sore.", "Setelah makan, sistem saraf yang mengatur pencernaan menjadi lebih aktif dan tubuh masuk mode 'istirahat dan cerna'.", "Makanan tinggi karbohidrat olahan meningkatkan gula darah lalu insulin, dan perubahan ini bisa menambah rasa lemas.", "Kombinasi jam biologis dan proses pencernaan inilah yang membuat kantuk terasa kuat."], "ending": "What time does your afternoon slump hit?", "visual": "Animasi 3D: jam biologis di otak, lambung mencerna makanan, grafik gula darah naik turun, kelopak mata berat.", "note": "Penjelasan umum, bukan saran medis."}, {"id": "76", "cat": "body", "title": "What Your Brain Does While You Sleep", "hook": "Your body rests at night. Your brain gets to work.", "steps": ["Saat tidur, otak bergantian melalui beberapa tahap: tidur ringan, tidur dalam, dan tidur REM.", "Pada tidur dalam, otak memindahkan ingatan baru dari hipokampus ke penyimpanan jangka panjang.", "Cairan di sekitar otak mengalir lebih lancar dan membantu membersihkan sisa-sisa metabolisme dari aktivitas seharian.", "Pada tidur REM, otak sangat aktif dan kita bermimpi, sementara sebagian besar otot tubuh lumpuh sementara."], "ending": "How many hours did you sleep last night?", "visual": "Animasi 3D otak bercahaya berganti warna per tahap tidur, aliran cairan membersihkan, grafik siklus tidur.", "note": "Penjelasan umum, bukan saran medis."}, {"id": "77", "cat": "body", "title": "What Happens in Your Body When You're 'Hangry'", "hook": "He wasn't angry at you. His blood sugar was.", "steps": ["Beberapa jam tanpa makan membuat kadar gula darah, sumber energi utama otak, mulai turun.", "Tubuh melepas hormon stres seperti kortisol dan adrenalin untuk mengeluarkan cadangan gula.", "Hormon-hormon itu juga membuat kita lebih tegang dan mudah bereaksi.", "Bagian otak yang mengatur pengendalian diri bekerja kurang optimal saat energinya rendah, sehingga emosi lebih mudah meledak."], "ending": "Are you a different person when you're hungry?", "visual": "Animasi 3D: grafik gula darah turun, kelenjar adrenal melepas hormon, area otak depan meredup.", "note": "Penjelasan umum, bukan saran medis."}, {"id": "78", "cat": "body", "title": "Why Your Muscles Hurt Two Days After a Workout", "hook": "Day one: fine. Day two: stairs are your enemy.", "steps": ["Gerakan baru atau lebih berat, terutama saat otot memanjang sambil menahan beban, membuat robekan sangat kecil di serat otot.", "Tubuh merespons dengan peradangan ringan untuk membersihkan dan memperbaiki serat yang rusak.", "Proses perbaikan itu membuat saraf di otot lebih sensitif, sehingga nyeri memuncak sekitar 24–72 jam setelah latihan.", "Serat yang diperbaiki menjadi lebih siap, makanya latihan yang sama terasa lebih ringan di minggu berikutnya."], "ending": "What workout destroyed you the next day?", "visual": "Animasi 3D serat otot dengan robekan kecil, sel perbaikan datang, serat menebal kembali.", "note": "Penjelasan umum, bukan saran medis. Nyeri bukan karena asam laktat."}, {"id": "79", "cat": "body", "title": "What Happens to Your Eyes When You Stare at a Screen", "hook": "You scrolled for two hours. Your eyes are dry, tired, and blurry.", "steps": ["Untuk melihat dekat, otot siliaris di dalam mata terus berkontraksi agar lensa mata tetap cembung dan fokus.", "Menahan fokus dekat terlalu lama membuat otot ini lelah, sehingga pandangan terasa buram saat melihat jauh.", "Saat menatap layar, kita berkedip jauh lebih jarang, sehingga lapisan air mata yang melindungi mata cepat menguap.", "Melihat jauh sejenak membuat otot siliaris rileks, dan berkedip mengembalikan lapisan air mata."], "ending": "How many hours of screen time did your phone report this week?", "visual": "Animasi 3D bola mata: otot siliaris menegang, lensa berubah bentuk, lapisan air mata menipis, lalu kedipan.", "note": "Penjelasan umum, bukan saran medis."}, {"id": "80", "cat": "body", "title": "Why Some People Sneeze When They Look at the Sun", "hook": "He stepped into the sunlight—and sneezed three times.", "steps": ["Cahaya terang masuk ke mata dan membuat pupil mengecil lewat sinyal di saraf mata.", "Pada sebagian orang, sinyal itu diduga 'bocor' ke saraf trigeminal di dekatnya, saraf yang juga merasakan iritasi di hidung.", "Otak membaca sinyal itu seolah ada iritasi di hidung dan memicu refleks bersin.", "Refleks ini disebut photic sneeze reflex, umumnya tidak berbahaya, dan sering diturunkan dalam keluarga."], "ending": "Does the sun make you sneeze?", "visual": "Animasi 3D kepala: cahaya masuk ke mata, jalur saraf mata dan saraf trigeminal bersilangan, hidung bersin.", "note": "Penjelasan umum. Mekanismenya masih diteliti."}];
+const STEPS = [["script","Script"],["visual","Visual"],["edit","Edit"],["tt","TikTok"],["ig","Instagram"],["fb","Facebook"],["yt","Shorts"]];
+const PF = [["tt","TikTok"],["ig","Instagram"],["fb","Facebook"],["yt","Shorts"]];
+const MET = [["views","Views"],["likes","Like"],["comments","Komen"],["shares","Share"],["saves","Save"],["follows","Follow baru"]];
+const EVAL = [["date"]].concat(...PF.map(([p]) => MET.map(([m]) => [p + "_" + m])));
+const state = {};          // id -> {steps:{}, eval:{}, notes:"", star:false}
+let IDEAS = BASE.slice(), CUSTOM = [];
+const blank = () => ({ steps: {}, eval: {}, notes: "", star: false, date: "" });
+IDEAS.forEach(i => state[i.id] = blank());
+const catLabel = c => ({ whatif: "What If", psych: "Psychology", how: "How It Works", body: "Anatomy Works", trend: "Trending" })[c] || "Lainnya";
+const lbl = i => i.custom ? "B" + (CUSTOM.filter(c => c.status === "planned").sort((a, b) => (a.plannedAt || 0) - (b.plannedAt || 0)).findIndex(c => c.id === i.id) + 1) : i.id;
+const sched = { start: "", per: 1, saved: false };
+const ui = { tab: "sched", cat: "all", status: "all", sort: "num", q: "", open: new Set() };
+let store = null;          // db collection or null
+let readOnly = false;
+
+// ---------- copy text ----------
+function shortsTitle(i) { return i.title; }
+function shortsDesc(i) {
+  const body = i.cat === "whatif"
+    ? "A \"What If\" story from Before It Happens: imagining the moment before everything changes. This is a fictional scenario."
+    : i.cat === "psych" ? "A quick look at the psychology behind everyday moments. General explanation, not a diagnosis or professional advice."
+    : i.cat === "how" ? "The everyday things around you, explained before they catch you off guard."
+    : i.cat === "body" ? "How your body works, explained simply. General information, not medical advice."
+    : i.cat === "trend" ? "The moment everyone is going through right now, and what to do before it happens."
+    : "Small moments, big lessons, before it happens.";
+  const tags = i.cat === "whatif"
+    ? "#whatif #shorts #storytime #hypothetical #beforeithappens"
+    : i.cat === "psych" ? "#psychology #shorts #humanbehavior #mindset #beforeithappens"
+    : i.cat === "how" ? "#howitworks #science #didyouknow #shorts #beforeithappens"
+    : i.cat === "body" ? "#anatomy #humanbody #howyourbodyworks #shorts #beforeithappens"
+    : i.cat === "trend" ? "#relatable #lifetips #seasonal #shorts #beforeithappens" : "#shorts #lifelessons #beforeithappens";
+  return [i.hook || i.title, i.ending, body, "Follow @beforeithappens for more.", tags].filter(Boolean).join("\n\n");
+}
+
+// ---------- scoring ----------
+const num = v => { const n = parseFloat(v); return isFinite(n) && n >= 0 ? n : 0; };
+// Per platform (0–100): engagement 45 ((like+komen+share+save) ÷ views, full at 10%),
+// reach 35 (views ÷ average views of your videos on that platform, full at 2×), follows 20 (per 1,000 views, full at 5).
+// Total = views-weighted average of the platforms. Winning ≥ 70, Potensial 50–69 — decided automatically.
+function pfData(id, p) {
+  const e = state[id].eval, v = num(e[p + "_views"]); if (!v) return null;
+  return { v, er: (num(e[p + "_likes"]) + num(e[p + "_comments"]) + num(e[p + "_shares"]) + num(e[p + "_saves"])) / v, fpk: num(e[p + "_follows"]) / v * 1000 };
+}
+function metrics(id) { let any = false, views = 0; PF.forEach(([p]) => { const d = pfData(id, p); if (d) { any = true; views += d.v; } }); return any ? { views } : null; }
+function maxViews() { // average views per platform across evaluated videos
+  const m = {}; PF.forEach(([p]) => { let t = 0, n = 0; for (const id in state) { const d = pfData(id, p); if (d) { t += d.v; n++; } } m[p] = n ? t / n : 0; }); return m; }
+function score(id, mv = maxViews()) {
+  let wsum = 0, vsum = 0; const per = {};
+  PF.forEach(([p]) => {
+    const d = pfData(id, p); if (!d) return;
+    const pts = { er: Math.min(d.er / 0.10, 1) * 45, reach: mv[p] ? Math.min(d.v / mv[p] / 2, 1) * 35 : 0, fol: Math.min(d.fpk / 5, 1) * 20 };
+    per[p] = { ...d, pts, total: Math.round(pts.er + pts.reach + pts.fol) };
+    wsum += per[p].total * d.v; vsum += d.v;
+  });
+  if (!vsum) return null;
+  const best = Object.entries(per).sort((a, b) => b[1].total - a[1].total)[0];
+  return { total: Math.round(wsum / vsum), per, views: vsum, best: best ? best[0] : null };
+}
+const pfName = p => (PF.find(x => x[0] === p) || [, "–"])[1];
+function stage(id) {
+  const s = state[id].steps;
+  if (s.tt || s.ig || s.fb || s.yt) return 3;
+  if (s.script && s.visual && s.edit) return 2;
+  if (s.script || s.visual || s.edit) return 1;
+  return 0;
+}
+const STAGE = ["Belum mulai", "Produksi", "Siap upload", "Sudah upload"];
+function tier(id, sc) { if (sc && sc.total >= 70) return "win"; if (sc && sc.total >= 50) return "pot"; return ""; }
+
+// ---------- persistence ----------
+const timers = {}, chains = {}, pending = new Set();
+function save(id) {
+  clearTimeout(timers[id]); pending.add(id);
+  timers[id] = setTimeout(() => {
+    const body = JSON.parse(JSON.stringify(state[id]));
+    if (store) {
+      setSync("Menyimpan…");
+      chains[id] = (chains[id] || Promise.resolve()).then(() => store.doc(id).set(body)).then(
+        () => { if (!timers[id + ":again"]) pending.delete(id); setSync("Tersimpan"); },
+        e => { if (e && e.code === "invalid_argument") { readOnly = true; setSync("Hanya bisa dibaca", true); } else setSync("Gagal menyimpan, coba lagi", true); });
+    } else {
+      pending.delete(id); try { localStorage.setItem("bih-planner", JSON.stringify(state)); setSync("Tersimpan di browser ini"); } catch { setSync("Tidak bisa menyimpan di perangkat ini", true); }
+    }
+  }, 500);
+}
+function setSync(t, err) { const el = document.getElementById("sync"); el.textContent = t; el.classList.toggle("err", !!err); }
+
+// ---------- schedule ----------
+const pad2 = n => String(n).padStart(2, "0");
+const ymd = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const parseYmd = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const addDays = (s, n) => { const d = parseYmd(s); d.setDate(d.getDate() + n); return ymd(d); };
+const todayStr = () => ymd(new Date());
+const fmtDay = s => parseYmd(s).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+// Interleave What If and Psychology evenly: each idea sits at k/n of its own list (What If first on ties).
+// Interleave categories evenly inside a batch (each idea sits at k/n of its own category).
+const RANK = { whatif: 0, psych: 1, how: 2, body: 3, trend: 4, other: 5 };
+const interleave = list => list.map(i => { const grp = list.filter(x => x.cat === i.cat); return { id: i.id, pos: grp.indexOf(i) / grp.length, cat: i.cat }; })
+  .sort((a, b) => a.pos - b.pos || RANK[a.cat] - RANK[b.cat]).map(x => x.id);
+const BASE_ORDER = interleave(BASE.filter(i => !i.fixed)); // all four categories mixed evenly across the whole schedule
+// Seasonal ideas keep a fixed suggested production date, a few days before their moment.
+const FIXED = BASE.filter(i => i.fixed).map(i => i.id);
+let AUTO = BASE_ORDER.slice(), ORDER = AUTO.concat(FIXED);
+// New ideas join the plan after the 50 base ideas, in the order they were scheduled.
+function rebuild() {
+  const planned = CUSTOM.filter(c => c.status === "planned").sort((a, b) => (a.plannedAt || 0) - (b.plannedAt || 0))
+    .map(c => ({ id: c.id, cat: c.cat, title: c.title, hook: c.hook || "", ending: "", steps: [], visual: "", note: "", idea: c.note || "", link: c.link || "", custom: true }));
+  IDEAS = BASE.concat(planned);
+  IDEAS.forEach(i => { if (!state[i.id]) state[i.id] = blank(); });
+  AUTO = BASE_ORDER.concat(planned.map(c => c.id)); ORDER = AUTO.concat(FIXED);
+}
+function startDate() { return sched.start || todayStr(); }
+function autoDate(id) { const i = BASE.find(x => x.id === id); if (i && i.fixed) return i.fixed; return addDays(startDate(), Math.floor(AUTO.indexOf(id) / Math.max(1, sched.per))); }
+function dateOf(id) { return state[id].date || autoDate(id); }
+function madeDone(id) { return stage(id) >= 2; }
+function saveSched() {
+  if (store) {
+    setSync("Menyimpan…");
+    schedDoc.set({ start: sched.start, per: sched.per }).then(() => setSync("Jadwal tersimpan"), e => setSync(e && e.code === "invalid_argument" ? "Hanya bisa dibaca" : "Gagal menyimpan jadwal", true));
+  } else { try { localStorage.setItem("bih-sched", JSON.stringify(sched)); setSync("Jadwal tersimpan di browser ini"); } catch { setSync("Tidak bisa menyimpan di perangkat ini", true); } }
+}
+let schedDoc = null;
+
+function miniSteps(id) {
+  const s = state[id].steps;
+  return `<div class="steps">${STEPS.map(([k, l]) => `<label data-k="${k}" class="${s[k] ? "on" : ""}"><input type="checkbox" data-sid="${id}" data-step="${k}" ${s[k] ? "checked" : ""} ${readOnly ? "disabled" : ""}> ${l}</label>`).join("")}</div>`;
+}
+function renderToday() {
+  const t = todayStr(), ids = ORDER.filter(id => dateOf(id) === t);
+  const late = ORDER.filter(id => dateOf(id) < t && !madeDone(id));
+  const next = ORDER.map(id => [id, dateOf(id)]).filter(([, d]) => d > t).sort((a, b) => a[1].localeCompare(b[1]))[0];
+  const item = id => { const i = IDEAS.find(x => x.id === id), st = stage(id);
+    return `<div class="titem"><div class="chips"><span class="chip ${i.cat}">${catLabel(i.cat)}</span>${i.custom ? '<span class="chip new">Ide baru</span>' : ""}<span class="chip st-${st}">${STAGE[st]}</span><span class="num">#${lbl(i)}</span></div>
+      <h3>${esc(i.title)}</h3><div class="hook">${esc(i.hook)}</div>${miniSteps(id)}
+      <div class="actions"><button class="toggle" data-goto="${id}">Buka brief, judul & deskripsi</button></div></div>`; };
+  document.getElementById("today").innerHTML = `<div class="th"><h2>Hari ini buat apa?</h2><span class="date">${fmtDay(t)}</span></div>
+    ${ids.length ? ids.map(item).join("") : `<p style="margin:0;color:var(--muted)">Tidak ada jadwal produksi hari ini.${next ? ` Jadwal berikutnya: <b>#${lbl(IDEAS.find(x => x.id === next[0]))}</b> pada ${fmtDay(next[1])}.` : ""}</p>`}
+    ${late.length ? `<p style="margin:0;font-size:13px;color:var(--warn)">${late.length} ide terlambat dari jadwal (belum selesai diedit). Lihat tab Jadwal Harian.</p>` : ""}
+    ${!sched.saved ? `<p style="margin:0;font-size:13px;color:var(--muted)">Jadwal belum disimpan, jadi tanggalnya masih ikut hari ini. Atur tanggal mulai di tab Jadwal Harian lalu klik Simpan jadwal.</p>` : ""}`;
+}
+function renderSched() {
+  document.getElementById("set-start").value = startDate();
+  document.getElementById("set-per").value = String(sched.per);
+  const t = todayStr(), byDay = {};
+  ORDER.forEach(id => { if (ui.cat !== "all" && IDEAS.find(x => x.id === id).cat !== ui.cat) return; (byDay[dateOf(id)] ||= []).push(id); });
+  const days = Object.keys(byDay).sort();
+  const weekKey = s => { const d = parseYmd(s); const dow = (d.getDay() + 6) % 7; d.setDate(d.getDate() - dow); return ymd(d); };
+  let html = "", wk = "";
+  days.forEach(day => {
+    const w = weekKey(day);
+    if (w !== wk) { if (wk) html += "</div>"; wk = w; html += `<div class="week"><h3>Minggu ${parseYmd(w).toLocaleDateString("id-ID", { day: "numeric", month: "short" })} – ${parseYmd(addDays(w, 6)).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</h3>`; }
+    const d = parseYmd(day);
+    html += `<div class="day ${day === t ? "is-today" : ""}"><div class="d"><b>${d.getDate()}</b><span>${day === t ? "Hari ini" : d.toLocaleDateString("id-ID", { weekday: "long" })}</span><span>${d.toLocaleDateString("id-ID", { month: "long" })}</span></div><div class="items">` +
+      byDay[day].map(id => { const i = IDEAS.find(x => x.id === id), st = stage(id), late = day < t && !madeDone(id);
+        return `<div class="ditem"><div class="t"><div class="chips"><span class="chip ${i.cat}">${catLabel(i.cat)}</span>${i.custom ? '<span class="chip new">Ide baru</span>' : ""}<span class="chip st-${st}">${STAGE[st]}</span>${late ? '<span class="chip late">Terlambat</span>' : ""}${state[id].date ? '<span class="chip st-0">Dipindah</span>' : ""}</div>
+          <b>#${lbl(i)} · ${esc(i.title)}</b></div>
+          <div class="actions" style="display:flex;gap:10px;flex-wrap:wrap"><button class="linkbtn" data-goto="${id}">Detail</button><label class="datepick">Pindah tanggal <input type="date" data-move="${id}" value="${dateOf(id)}" aria-label="Pindah tanggal #${lbl(i)}" ${readOnly ? "disabled" : ""}></label></div>
+          ${miniSteps(id)}</div>`; }).join("") + "</div></div>";
+  });
+  if (wk) html += "</div>";
+  document.getElementById("days").innerHTML = html || '<div class="empty">Tidak ada ide untuk kategori ini.</div>';
+}
+
+// ---------- new ideas (inbox) ----------
+let ideasCol = null, editing = null, confirmDel = null;
+function saveCustom(c) {
+  if (ideasCol) { setSync("Menyimpan…"); return ideasCol.doc(c.id).set(c).then(() => setSync("Tersimpan"), e => { setSync(e && e.code === "invalid_argument" ? "Hanya bisa dibaca" : "Gagal menyimpan ide", true); throw e; }); }
+  const i = CUSTOM.findIndex(x => x.id === c.id); if (i >= 0) CUSTOM[i] = c; else CUSTOM.push(c);
+  try { localStorage.setItem("bih-custom", JSON.stringify(CUSTOM)); setSync("Tersimpan di browser ini"); } catch { setSync("Tidak bisa menyimpan di perangkat ini", true); }
+  rebuild(); renderAll(); return Promise.resolve();
+}
+function deleteCustom(id) {
+  if (ideasCol) { setSync("Menghapus…"); return ideasCol.doc(id).delete().then(() => setSync("Ide dihapus"), () => setSync("Gagal menghapus", true)); }
+  CUSTOM = CUSTOM.filter(c => c.id !== id); try { localStorage.setItem("bih-custom", JSON.stringify(CUSTOM)); } catch {}
+  rebuild(); renderAll(); return Promise.resolve();
+}
+function renderInbox() {
+  const waiting = CUSTOM.filter(c => c.status !== "planned").sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const planned = CUSTOM.filter(c => c.status === "planned").length;
+  document.getElementById("tab-inbox").textContent = waiting.length ? `Ide Baru (${waiting.length})` : "Ide Baru";
+  if (ui.tab !== "inbox") return;
+  const card = c => `<article class="icard" data-cid="${c.id}">
+      <div class="chips"><span class="chip ${c.cat}">${catLabel(c.cat)}</span><span class="meta">dicatat ${new Date(c.createdAt || Date.now()).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</span></div>
+      <h3>${esc(c.title)}</h3>
+      ${c.hook ? `<div class="q">${esc(c.hook)}</div>` : ""}
+      ${c.note ? `<div class="txt">${esc(c.note)}</div>` : ""}
+      ${c.link ? `<div class="link"><a href="${esc(c.link)}" target="_blank" rel="noopener">${esc(c.link)}</a></div>` : ""}
+      <div class="row">${readOnly ? "" : confirmDel === c.id
+        ? `<span style="font-size:13px">Hapus ide ini?</span><button class="danger" data-iact="del-yes">Ya, hapus</button><button class="toggle" data-iact="del-no">Batal</button>`
+        : `<button class="primary" data-iact="plan">Masukkan ke jadwal</button><button class="toggle" data-iact="edit">Ubah</button><button class="toggle" data-iact="del">Hapus</button>`}</div>
+    </article>`;
+  document.getElementById("ilist").innerHTML = (waiting.length ? waiting.map(card).join("")
+    : `<div class="empty">Belum ada ide baru yang menunggu. Catat inspirasi di form di atas.</div>`)
+    + (planned ? `<p style="margin:0;color:var(--muted);font-size:13px">${planned} ide baru sudah masuk jadwal dan tampil di tab Planner serta Jadwal Harian dengan label "Ide baru".</p>` : "");
+}
+function resetForm() { editing = null; document.getElementById("iform").reset(); document.getElementById("iform-title").textContent = "Catat ide baru"; document.getElementById("in-save").textContent = "Simpan ide"; document.getElementById("in-cancel").hidden = true; document.getElementById("in-err").textContent = ""; }
+document.getElementById("iform").addEventListener("submit", e => {
+  e.preventDefault(); if (readOnly) return;
+  const title = document.getElementById("in-title").value.trim();
+  if (!title) { document.getElementById("in-err").textContent = "Isi judul atau ide singkat dulu."; document.getElementById("in-title").focus(); return; }
+  const base = editing ? CUSTOM.find(c => c.id === editing) : null;
+  const c = Object.assign({}, base || { id: "n" + Date.now().toString(36), createdAt: Date.now(), status: "inbox" }, {
+    title, cat: document.getElementById("in-cat").value, hook: document.getElementById("in-hook").value.trim(),
+    note: document.getElementById("in-note").value.trim(), link: document.getElementById("in-link").value.trim() });
+  saveCustom(c).then(resetForm, () => { document.getElementById("in-err").textContent = "Ide belum tersimpan. Coba lagi."; });
+});
+document.getElementById("in-cancel").onclick = resetForm;
+document.getElementById("ilist").addEventListener("click", e => {
+  const b = e.target.closest("[data-iact]"); if (!b || readOnly) return;
+  const id = b.closest("[data-cid]").dataset.cid, c = CUSTOM.find(x => x.id === id); if (!c) return;
+  const a = b.dataset.iact;
+  if (a === "plan") saveCustom(Object.assign({}, c, { status: "planned", plannedAt: Date.now() }));
+  else if (a === "edit") { editing = id; document.getElementById("in-title").value = c.title; document.getElementById("in-cat").value = c.cat; document.getElementById("in-hook").value = c.hook || "";
+    document.getElementById("in-note").value = c.note || ""; document.getElementById("in-link").value = c.link || ""; document.getElementById("iform-title").textContent = "Ubah ide";
+    document.getElementById("in-save").textContent = "Simpan perubahan"; document.getElementById("in-cancel").hidden = false; document.getElementById("in-title").focus(); }
+  else if (a === "del") { confirmDel = id; renderInbox(); }
+  else if (a === "del-no") { confirmDel = null; renderInbox(); }
+  else if (a === "del-yes") { confirmDel = null; deleteCustom(id); }
+});
+
+// ---------- rendering ----------
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function rowHTML(i) {
+  const s = state[i.id];
+  return `<article class="idea" id="idea-${i.id}" data-id="${i.id}">
+    <div class="head">
+      <div class="num">#${lbl(i)}</div>
+      <div class="ttl">
+        <div class="chips"><span class="chip ${i.cat}">${catLabel(i.cat)}</span>${i.custom ? '<span class="chip new">Ide baru</span>' : ""}<span class="chip st" data-r="stage"></span><span data-r="tier"></span></div>
+        <h3>${esc(i.title)}</h3>
+        <div class="hook">${esc(i.hook)}</div>
+      </div>
+      <div class="right"><div class="score" data-r="score"></div><button class="toggle" data-act="toggle" aria-expanded="false" aria-controls="d-${i.id}">Detail</button></div>
+    </div>
+    <div class="steps">${STEPS.map(([k, l], n) => `${n === 3 ? '<span class="sep" aria-hidden="true"></span>' : ""}<label data-k="${k}"><input type="checkbox" id="c-${i.id}-${k}" data-step="${k}"> ${l}</label>`).join("")}</div>
+    <div class="detail" id="d-${i.id}" hidden>
+      <section>
+        ${i.custom ? `<h4>Inspirasi & catatan</h4>
+        <div class="visual" style="white-space:pre-wrap">${i.idea ? esc(i.idea) : "Belum ada catatan. Ubah lewat tab Ide Baru."}</div>
+        ${i.link ? `<h4>Link sumber</h4><div class="visual" style="word-break:break-all"><a href="${esc(i.link)}" target="_blank" rel="noopener">${esc(i.link)}</a></div>` : ""}` : `<h4>${i.cat === "body" ? "Proses di dalam tubuh" : "Alur cerita"}</h4>
+        <ol>${i.steps.map(t => `<li>${esc(t)}</li>`).join("")}</ol>
+        <h4>Ending / pertanyaan</h4>
+        <div class="q">${esc(i.ending)}</div>
+        <h4>Arahan visual AI</h4>
+        <div class="visual">${esc(i.visual)}</div>`}
+        ${i.note ? `<div class="note">${esc(i.note)}</div>` : ""}
+      </section>
+      <section>
+        <h4>Jadwal produksi</h4>
+        <div class="datepick"><input type="date" id="pd-${i.id}" data-pdate aria-label="Tanggal produksi"><span data-r="pdnote"></span></div>
+        <h4>Judul Shorts</h4>
+        <div class="copybox"><div class="row"><pre>${esc(shortsTitle(i))}</pre><button class="copy" data-copy="title">Salin</button></div></div>
+        <h4>Deskripsi Shorts</h4>
+        <div class="copybox"><pre>${esc(shortsDesc(i))}</pre><div class="row"><span></span><button class="copy" data-copy="desc">Salin deskripsi</button></div></div>
+      </section>
+      <section class="evalsec">
+        <h4>Evaluasi per platform</h4>
+        <div class="eval"><label>Tanggal upload<input type="date" id="e-${i.id}-date" data-eval="date"></label></div>
+        <div class="etable"><table><thead><tr><th>Platform</th>${MET.map(([, l]) => `<th>${l}</th>`).join("")}<th>Skor</th></tr></thead><tbody>
+          ${PF.map(([p, pl]) => `<tr><th>${pl}</th>${MET.map(([m, l]) => `<td><input type="number" min="0" step="any" inputmode="decimal" id="e-${i.id}-${p}_${m}" data-eval="${p}_${m}" aria-label="${pl} ${l}"></td>`).join("")}<td class="n" data-pfs="${p}">–</td></tr>`).join("")}
+        </tbody></table></div>
+        <div class="breakdown" data-r="breakdown"></div>
+        <div class="verdict" data-r="verdict"></div>
+        <label style="display:grid;gap:3px;font-size:12px;color:var(--muted)">Catatan evaluasi<textarea id="n-${i.id}" data-notes placeholder="Apa yang membuat video ini berhasil atau gagal? Hook, thumbnail, jam upload…"></textarea></label>
+      </section>
+    </div>
+  </article>`;
+}
+function paintRow(i, mv) {
+  const el = document.getElementById("idea-" + i.id); if (!el) return;
+  const s = state[i.id], sc = score(i.id, mv), st = stage(i.id), t = tier(i.id, sc);
+  const chip = el.querySelector('[data-r="stage"]'); chip.className = "chip st-" + st; chip.textContent = STAGE[st];
+  el.querySelector('[data-r="tier"]').innerHTML = t === "win" ? '<span class="chip winb">Winning</span>' : t === "pot" ? '<span class="chip pot">Potensial</span>' : "";
+  el.classList.toggle("win", t === "win");
+  el.querySelector('[data-r="score"]').innerHTML = sc ? `${sc.total}<small>skor</small>` : `<small>belum dievaluasi</small>`;
+  STEPS.forEach(([k]) => { const c = el.querySelector(`[data-step="${k}"]`); if (c !== document.activeElement) c.checked = !!s.steps[k]; c.parentElement.classList.toggle("on", !!s.steps[k]); });
+  EVAL.forEach(([k]) => { const f = el.querySelector(`[data-eval="${k}"]`); if (f !== document.activeElement) f.value = s.eval[k] ?? ""; });
+  const pd = el.querySelector("[data-pdate]"); if (pd !== document.activeElement) pd.value = dateOf(i.id);
+  el.querySelector('[data-r="pdnote"]').textContent = s.date ? "Tanggal diatur manual" : i.fixed ? "Tanggal musiman, dibuat sebelum momennya" : "Mengikuti jadwal otomatis";
+  const notes = el.querySelector("[data-notes]"); if (notes !== document.activeElement) notes.value = s.notes || "";
+  PF.forEach(([p]) => { const c = el.querySelector(`[data-pfs="${p}"]`); c.innerHTML = sc && sc.per[p] ? `<b>${sc.per[p].total}</b>` : "–"; });
+  el.querySelector('[data-r="breakdown"]').innerHTML = sc
+    ? `<div>Skor gabungan<b>${sc.total}</b></div><div>Total views<b>${sc.views.toLocaleString("id-ID")}</b></div><div>Platform terbaik<b>${pfName(sc.best)}</b></div><div>Engagement terbaik<b>${(Math.max(...Object.values(sc.per).map(x => x.er)) * 100).toFixed(1)}%</b></div>`
+    : `<div style="grid-column:1/-1">Isi angka tiap platform yang sudah diupload. Platform yang belum diupload biarkan kosong.</div>`;
+  const vd = el.querySelector('[data-r="verdict"]'), t2 = tier(i.id, sc);
+  vd.className = "verdict " + t2;
+  vd.textContent = !sc ? "Status winning ditentukan otomatis setelah angka evaluasi diisi."
+    : t2 === "win" ? `Winning content: skor ${sc.total}, terkuat di ${pfName(sc.best)}. Buat lagi format atau topik serupa.`
+    : t2 === "pot" ? `Potensial: skor ${sc.total}. Coba ubah hook atau judul lalu upload ulang di platform yang lemah.`
+    : `Belum berhasil: skor ${sc.total}. Bandingkan hook dan 3 detik pertamanya dengan video yang winning.`;
+  if (readOnly) el.querySelectorAll("input,select,textarea").forEach(f => f.disabled = true);
+}
+function visibleIdeas(mv) {
+  const q = ui.q.trim().toLowerCase();
+  let list = IDEAS.filter(i => (ui.cat === "all" || i.cat === ui.cat)
+    && (!q || (i.title + " " + i.hook).toLowerCase().includes(q))
+    && (ui.status === "all" || (ui.status === "win" ? tier(i.id, score(i.id, mv)) === "win" : String(stage(i.id)) === ui.status)));
+  if (ui.sort === "score") list = list.slice().sort((a, b) => ((score(b.id, mv)?.total ?? -1) - (score(a.id, mv)?.total ?? -1)) || a.id.localeCompare(b.id));
+  return list;
+}
+function renderList() {
+  const mv = maxViews(), box = document.getElementById("view-plan"), list = visibleIdeas(mv);
+  const want = list.map(i => i.id).join(",");
+  if (box.dataset.order !== want) {
+    box.innerHTML = list.length ? list.map(rowHTML).join("") : '<div class="empty">Tidak ada ide yang cocok dengan filter ini.</div>';
+    box.dataset.order = want;
+    ui.open.forEach(id => setOpen(id, true));
+  }
+  list.forEach(i => paintRow(i, mv));
+}
+function renderStats() {
+  const ids = IDEAS.map(i => i.id), mv = maxViews();
+  const made = ids.filter(id => stage(id) >= 2).length, up = ids.filter(id => stage(id) === 3).length;
+  const ev = ids.filter(id => metrics(id)).length, win = ids.filter(id => tier(id, score(id, mv)) === "win").length;
+  const card = (b, s, pct, cls = "") => `<div class="stat ${cls}"><b>${b}</b><span>${s}</span>${pct != null ? `<div class="bar"><i style="width:${pct}%"></i></div>` : ""}</div>`;
+  document.getElementById("stats").innerHTML =
+    card(IDEAS.length, `ide terjadwal${CUSTOM.filter(c => c.status === "planned").length ? ` (${CUSTOM.filter(c => c.status === "planned").length} ide baru)` : ""} · ${CUSTOM.filter(c => c.status !== "planned").length} menunggu di Ide Baru`) +
+    card(made, "selesai diproduksi", made / IDEAS.length * 100) +
+    card(up, "sudah diupload", up / IDEAS.length * 100) +
+    card(ev, "sudah dievaluasi", ev / IDEAS.length * 100) +
+    card(win, "winning content", null, "win");
+}
+function renderBoard() {
+  const mv = maxViews();
+  const rows = IDEAS.map(i => ({ i, sc: score(i.id, mv) })).filter(r => r.sc).sort((a, b) => b.sc.total - a.sc.total);
+  const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+  document.getElementById("sum-pf").innerHTML = PF.map(([p, pl]) => {
+    const d = rows.map(r => r.sc.per[p]).filter(Boolean), er = avg(d.map(x => x.er)), sc = avg(d.map(x => x.total));
+    return `<tr><td>${pl}</td><td class="n">${d.length}</td><td class="n">${d.reduce((x, y) => x + y.v, 0).toLocaleString("id-ID")}</td><td class="n">${er == null ? "–" : (er * 100).toFixed(1) + "%"}</td><td class="n"><b>${sc == null ? "–" : sc.toFixed(0)}</b></td></tr>`;
+  }).join("");
+  document.getElementById("sum-cat").innerHTML = ["whatif", "psych", "how", "body"].concat([...new Set(IDEAS.map(i => i.cat))].filter(c => !["whatif", "psych", "how", "body"].includes(c))).map(c => {
+    const r = rows.filter(x => x.i.cat === c), sc = avg(r.map(x => x.sc.total));
+    return `<tr><td>${catLabel(c)}</td><td class="n">${r.length}</td><td class="n"><b>${sc == null ? "–" : sc.toFixed(0)}</b></td><td class="n">${r.filter(x => tier(x.i.id, x.sc) === "win").length}</td></tr>`;
+  }).join("");
+  document.getElementById("rank").innerHTML = rows.length ? rows.map(({ i, sc }) => {
+    const t = tier(i.id, sc), cell = p => `<td class="n">${sc.per[p] ? sc.per[p].total : "–"}</td>`;
+    return `<tr class="${t === "win" ? "win" : ""}"><td class="n">${lbl(i)}</td><td>${esc(i.title)}</td><td>${catLabel(i.cat)}</td><td class="n">${sc.views.toLocaleString("id-ID")}</td>
+      ${PF.map(([p]) => cell(p)).join("")}<td>${pfName(sc.best)}</td><td class="n"><b>${sc.total}</b></td>
+      <td>${t === "win" ? '<span class="chip winb">Winning</span>' : t === "pot" ? '<span class="chip pot">Potensial</span>' : '<span class="chip st-0">Biasa</span>'}</td></tr>`;
+  }).join("") : '<tr><td colspan="11" class="empty">Belum ada video yang dievaluasi. Buka Detail sebuah ide di tab Planner lalu isi angka evaluasinya.</td></tr>';
+}
+function renderRecap() {
+  const box = document.getElementById("view-recap"), mv = maxViews();
+  const rows = IDEAS.map(i => ({ i, sc: score(i.id, mv) })).filter(r => r.sc).sort((a, b) => b.sc.total - a.sc.total);
+  if (!rows.length) { box.innerHTML = `<div class="rc"><h3>Belum ada data evaluasi</h3><p class="sub">Rekap muncul otomatis setelah kamu mengisi angka evaluasi di Detail ide (tab Planner). Isi angkanya 48–72 jam setelah video diupload.</p></div>`; return; }
+  const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+  const fmt = n => Math.round(n).toLocaleString("id-ID");
+  const win = rows.filter(r => tier(r.i.id, r.sc) === "win"), pot = rows.filter(r => tier(r.i.id, r.sc) === "pot");
+  const pf = PF.map(([p, pl]) => { const d = rows.map(r => r.sc.per[p]).filter(Boolean);
+    return { p, pl, n: d.length, views: d.reduce((x, y) => x + y.v, 0), er: avg(d.map(x => x.er)), fol: d.reduce((x, y) => x + y.fpk * y.v / 1000, 0), sc: avg(d.map(x => x.total)) }; });
+  const cats = [...new Set(IDEAS.map(i => i.cat))].map(c => { const r = rows.filter(x => x.i.cat === c); return { c, n: r.length, sc: avg(r.map(x => x.sc.total)), win: r.filter(x => tier(x.i.id, x.sc) === "win").length }; }).filter(x => x.n);
+  const bestPf = pf.filter(x => x.n).sort((a, b) => b.sc - a.sc)[0], worstPf = pf.filter(x => x.n).sort((a, b) => a.sc - b.sc)[0];
+  const bestCat = cats.slice().sort((a, b) => b.sc - a.sc)[0], top = rows[0];
+  const missing = pf.filter(x => !x.n).map(x => x.pl);
+  const bar = (label, val, has, meta) => `<div class="brow"><span>${label}</span><div class="track"><i class="${val < 50 ? "lo" : ""}" style="width:${has ? Math.max(2, val) : 0}%"></i></div><span class="val"><b>${has ? val.toFixed(0) : "–"}</b></span><span class="meta">${meta}</span></div>`;
+  const item = r => `<li><div><b>#${lbl(r.i)} ${esc(r.i.title)}</b><small>${catLabel(r.i.cat)} · ${fmt(r.sc.views)} views · terkuat di ${pfName(r.sc.best)}</small></div><span class="sc">${r.sc.total}</span></li>`;
+  box.innerHTML = `
+    <div class="rc"><h3>Ringkasan</h3>
+      <div class="kpis">
+        <div class="kpi"><b>${rows.length}</b><span>video dievaluasi</span></div>
+        <div class="kpi"><b>${fmt(rows.reduce((x, r) => x + r.sc.views, 0))}</b><span>total views semua platform</span></div>
+        <div class="kpi"><b>${avg(rows.map(r => r.sc.total)).toFixed(0)}</b><span>rata-rata skor</span></div>
+        <div class="kpi"><b>${win.length} · ${pot.length} · ${rows.length - win.length - pot.length}</b><span>winning · potensial · belum</span></div>
+      </div>
+    </div>
+    <div class="rc"><h3>Kesimpulan</h3>
+      <ul class="insights">
+        <li>Platform terbaik saat ini: <b>${bestPf.pl}</b> (rata-rata skor ${bestPf.sc.toFixed(0)}).${worstPf && worstPf.p !== bestPf.p ? ` Paling lemah: <b>${worstPf.pl}</b> (${worstPf.sc.toFixed(0)}).` : ""}</li>
+        <li>Kategori terbaik: <b>${catLabel(bestCat.c)}</b> dengan rata-rata skor ${bestCat.sc.toFixed(0)} dari ${bestCat.n} video.</li>
+        <li>Video terbaik: <b>#${lbl(top.i)} ${esc(top.i.title)}</b> (skor ${top.sc.total}).</li>
+        <li>${win.length ? `Buat lagi topik atau format seperti ${win.length} video winning, terutama di kategori ${catLabel(bestCat.c)}.` : "Belum ada video winning. Fokus perbaiki hook di 3 detik pertama dan judul."}</li>
+        ${missing.length ? `<li>Belum ada data dari: ${missing.join(", ")}.</li>` : ""}
+        ${rows.length < 10 ? `<li>Baru ${rows.length} video dievaluasi; kesimpulan makin akurat setelah sekitar 10 video.</li>` : ""}
+      </ul>
+    </div>
+    <div class="two">
+      <div class="rc"><h3>Per platform</h3><p class="sub">Panjang batang = rata-rata skor.</p>
+        <div class="bars">${pf.map(x => bar(x.pl, x.sc, x.n, x.n ? `${x.n} video · ${fmt(x.views)} views · engagement ${(x.er * 100).toFixed(1)}% · +${fmt(x.fol)} follow` : "belum ada data")).join("")}</div>
+      </div>
+      <div class="rc"><h3>Per kategori</h3><p class="sub">Panjang batang = rata-rata skor.</p>
+        <div class="bars">${cats.map(x => bar(catLabel(x.c), x.sc, true, `${x.n} video · ${x.win} winning`)).join("")}</div>
+      </div>
+    </div>
+    <div class="two">
+      <div class="rc"><h3>5 video teratas</h3><ul class="vlist">${rows.slice(0, 5).map(item).join("")}</ul></div>
+      <div class="rc"><h3>Perlu dievaluasi ulang</h3><p class="sub">Video non-winning dengan skor terendah. Bandingkan hook, judul, dan jam upload dengan video teratas.</p><ul class="vlist">${(() => { const low = rows.filter(r => tier(r.i.id, r.sc) !== "win").slice(-3).reverse(); return low.length ? low.map(item).join("") : "<li>Semua video yang dievaluasi sudah winning.</li>"; })()}</ul></div>
+    </div>`;
+}
+// ---------- evaluation reminders (48–72 h after upload) ----------
+// Ticking an upload checkbox fills the upload date (today) if it is still empty.
+function markUpload(s, step, on) { if (on && PF.some(([p]) => p === step) && !s.eval.date) s.eval.date = todayStr(); }
+const dayDiff = (a, b) => Math.round((parseYmd(a) - parseYmd(b)) / 86400000);
+function reminders() {
+  const t = todayStr(), out = [];
+  IDEAS.forEach(i => {
+    const s = state[i.id], up = PF.filter(([p]) => s.steps[p]); if (!up.length) return;
+    const missing = up.filter(([p]) => !num(s.eval[p + "_views"])); if (!missing.length) return;
+    if (!s.eval.date) { out.push({ i, kind: "nodate", missing, age: null }); return; }
+    const age = dayDiff(t, s.eval.date);
+    out.push({ i, missing, age, kind: age < 2 ? "soon" : age <= 3 ? "due" : "over" });
+  });
+  const rank = { over: 0, due: 1, nodate: 2, soon: 3 };
+  return out.sort((a, b) => rank[a.kind] - rank[b.kind] || (b.age ?? 0) - (a.age ?? 0));
+}
+function renderReminders() {
+  const box = document.getElementById("remind"), r = reminders(), act = r.filter(x => x.kind !== "soon");
+  box.hidden = !r.length; if (!r.length) return;
+  const label = x => x.kind === "over" ? `<span class="chip over">Terlambat ${x.age - 3} hari</span>`
+    : x.kind === "due" ? `<span class="chip due">Isi sekarang</span>`
+    : x.kind === "nodate" ? `<span class="chip soon">Tanggal upload kosong</span>`
+    : `<span class="chip soon">Isi ${fmtDay(addDays(x.i && state[x.i.id].eval.date, 2))}</span>`;
+  box.innerHTML = `<h2>Pengingat evaluasi</h2>
+    <p class="sub">${act.length ? `${act.length} video perlu diisi angka evaluasinya.` : "Belum ada yang jatuh tempo."} Angka diisi 48–72 jam setelah upload, supaya perbandingannya adil.</p>
+    <ul class="rlist">${r.map(x => `<li><div class="t"><div class="chips">${label(x)}<span class="chip ${x.i.cat}">${catLabel(x.i.cat)}</span></div>
+      <b>#${lbl(x.i)} ${esc(x.i.title)}</b>
+      <small>${x.kind === "nodate" ? "Isi tanggal upload di Detail ide." : `Diupload ${fmtDay(state[x.i.id].eval.date)}`} · belum diisi: ${x.missing.map(([, pl]) => pl).join(", ")}</small></div>
+      <button class="toggle" data-goto="${x.i.id}">Isi evaluasi</button></li>`).join("")}</ul>`;
+}
+document.getElementById("remind").addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if (g) gotoIdea(g.dataset.goto); });
+function renderAll() { renderToday(); renderReminders(); renderStats(); renderInbox(); if (ui.tab === "plan") renderList(); else if (ui.tab === "win") renderBoard(); else if (ui.tab === "sched") renderSched(); else if (ui.tab === "recap") renderRecap(); }
+
+function setOpen(id, open) {
+  const d = document.getElementById("d-" + id), el = document.getElementById("idea-" + id); if (!d) return;
+  d.hidden = !open; el.querySelector('[data-act="toggle"]').setAttribute("aria-expanded", open); el.querySelector('[data-act="toggle"]').textContent = open ? "Tutup" : "Detail";
+}
+
+// ---------- events ----------
+const list = document.getElementById("view-plan");
+list.addEventListener("click", e => {
+  const art = e.target.closest(".idea"); if (!art) return; const id = art.dataset.id;
+  const t = e.target.closest('[data-act="toggle"]');
+  if (t) { const open = !ui.open.has(id); open ? ui.open.add(id) : ui.open.delete(id); setOpen(id, open); return; }
+  const c = e.target.closest("[data-copy]");
+  if (c) {
+    const idea = IDEAS.find(x => x.id === id), text = c.dataset.copy === "title" ? shortsTitle(idea) : shortsDesc(idea);
+    const ok = () => { c.classList.add("done"); const o = c.textContent; c.textContent = "Tersalin"; setTimeout(() => { c.classList.remove("done"); c.textContent = o; }, 1400); };
+    try { navigator.clipboard.writeText(text).then(ok, () => selectPre(c)); } catch { selectPre(c); }
+  }
+});
+function selectPre(btn) { const pre = btn.closest(".copybox").querySelector("pre"); const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = "Teks dipilih, tekan Ctrl+C"; }
+list.addEventListener("change", e => {
+  const art = e.target.closest(".idea"); if (!art || readOnly) return; const id = art.dataset.id, s = state[id];
+  if (e.target.dataset.step) { s.steps[e.target.dataset.step] = e.target.checked; markUpload(s, e.target.dataset.step, e.target.checked); }
+  else if (e.target.dataset.eval) s.eval[e.target.dataset.eval] = e.target.value;
+  else if ("pdate" in e.target.dataset) { s.date = e.target.value && e.target.value !== autoDate(id) ? e.target.value : ""; save(id); renderAll(); return; }
+  else return;
+  save(id); renderStats(); renderToday(); renderReminders(); paintAllRows();
+});
+list.addEventListener("input", e => {
+  const art = e.target.closest(".idea"); if (!art || readOnly) return; const id = art.dataset.id, s = state[id];
+  if (e.target.dataset.eval) { s.eval[e.target.dataset.eval] = e.target.value; save(id); renderStats(); renderToday(); renderReminders(); paintAllRows(); }
+  else if ("notes" in e.target.dataset) { s.notes = e.target.value; save(id); }
+});
+function paintAllRows() { const mv = maxViews(); IDEAS.forEach(i => paintRow(i, mv)); }
+
+document.getElementById("tab-plan").onclick = () => setTab("plan");
+document.getElementById("tab-win").onclick = () => setTab("win");
+document.getElementById("tab-sched").onclick = () => setTab("sched");
+document.getElementById("tab-inbox").onclick = () => setTab("inbox");
+document.getElementById("tab-recap").onclick = () => setTab("recap");
+function setTab(t) { ui.tab = t; ["plan", "win", "sched", "inbox", "recap"].forEach(x => { document.getElementById("tab-" + x).setAttribute("aria-pressed", t === x); document.getElementById("view-" + x).hidden = t !== x; }); renderAll(); }
+function gotoIdea(id) {
+  ui.cat = "all"; ui.status = "all"; ui.q = ""; document.getElementById("q").value = ""; document.getElementById("status").value = "all";
+  document.querySelectorAll("#cat button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v === "all"));
+  ui.open.add(id); setTab("plan"); setOpen(id, true);
+  const el = document.getElementById("idea-" + id); if (el) el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+}
+// Shared handlers for the Today panel and the schedule list
+function stepToggle(e) {
+  const c = e.target.closest("input[data-sid]"); if (!c || readOnly) return;
+  state[c.dataset.sid].steps[c.dataset.step] = c.checked; markUpload(state[c.dataset.sid], c.dataset.step, c.checked); save(c.dataset.sid); renderAll();
+}
+["today", "days"].forEach(box => {
+  const el = document.getElementById(box);
+  el.addEventListener("change", e => {
+    stepToggle(e);
+    const m = e.target.closest("input[data-move]");
+    if (m && !readOnly && m.value) { const id = m.dataset.move; state[id].date = m.value !== autoDate(id) ? m.value : ""; save(id); renderAll(); }
+  });
+  el.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if (g) gotoIdea(g.dataset.goto); });
+});
+document.getElementById("set-save").onclick = () => {
+  if (readOnly) return;
+  const v = document.getElementById("set-start").value; sched.start = v || todayStr(); sched.per = Number(document.getElementById("set-per").value) || 1; sched.saved = true;
+  saveSched(); renderAll();
+};
+document.getElementById("cat").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; ui.cat = b.dataset.v;
+  document.querySelectorAll("#cat button").forEach(x => x.setAttribute("aria-pressed", x === b)); if (ui.tab === "win") setTab("plan"); else renderAll(); });
+document.getElementById("status").onchange = e => { ui.status = e.target.value; if (ui.tab !== "plan") setTab("plan"); else renderList(); };
+document.getElementById("sort").onchange = e => { ui.sort = e.target.value; renderList(); };
+document.getElementById("q").oninput = e => { ui.q = e.target.value; renderList(); };
+
+// ---------- boot ----------
+setTab("sched");
+(async () => {
+  let db = null;
+  try { db = await window.claude?.use?.("db"); } catch { db = null; }
+  if (!db) {
+    try { const saved = JSON.parse(localStorage.getItem("bih-planner") || "null"); if (saved) for (const id in saved) if (state[id]) state[id] = Object.assign(state[id], saved[id]); } catch {}
+    try { const ss = JSON.parse(localStorage.getItem("bih-sched") || "null"); if (ss && ss.start) Object.assign(sched, ss, { saved: true }); } catch {}
+    try { const cc = JSON.parse(localStorage.getItem("bih-custom") || "null"); if (Array.isArray(cc)) { CUSTOM = cc; rebuild(); } } catch {}
+    setSync("Mode offline: tersimpan di browser ini saja"); renderAll(); return;
+  }
+  try { const user = await window.claude.use("user"); if (user && (await user.can("data.write")) === false) { readOnly = true; } } catch {}
+  store = db.collection("progress");
+  schedDoc = db.doc("settings/schedule");
+  ideasCol = db.collection("ideas");
+  ideasCol.onSnapshot(snap => { CUSTOM = snap.docs.map(d => d.data()).filter(c => c && c.id && c.title); rebuild(); renderAll(); }, () => {});
+  schedDoc.onSnapshot(d => { if (d.exists) { const v = d.data() || {}; sched.start = v.start || ""; sched.per = Number(v.per) || 1; sched.saved = !!v.start; renderAll(); } }, () => {});
+  setSync(readOnly ? "Hanya bisa dibaca" : "Tersambung");
+  store.onSnapshot(snap => {
+    snap.docs.forEach(d => { if (!state[d.id] && /^n[0-9a-z]+$/.test(d.id)) state[d.id] = blank(); if (state[d.id] && !pending.has(d.id) && !d.metadata.hasPendingWrites) { const v = d.data() || {}; state[d.id] = { steps: { ...(v.steps || {}) }, eval: { ...(v.eval || {}) }, notes: v.notes || "", star: !!v.star, date: v.date || "" }; } });
+    renderAll();
+  }, () => setSync("Koneksi penyimpanan terputus, muat ulang halaman", true));
+})();
+</script>
+
+</body></html>
